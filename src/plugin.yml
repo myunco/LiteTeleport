@@ -1,0 +1,137 @@
+name: LiteTeleport
+main: ml.mcos.liteteleport.LiteTeleport
+version: 1.6.0
+api-version: 1.13
+commands:
+  LiteTeleport:
+    description: 'This is main command of the plugin.'
+    usage: '/LiteTeleport <version|reload>'
+    aliases: 'ltp'
+    permission: 'LiteTeleport.admin'
+    permission-message: "§cYou don't have permission!"
+  setspawn:
+    description: '将所在世界出生点设置为当前位置。'
+    usage: '/setspawn'
+    permission: 'LiteTeleport.setspawn'
+    permission-message: '§c你没有权限使用此命令!'
+  spawn:
+    description: '传送到setspawn设置的世界的出生点。'
+    usage: '/spawn'
+    permission: 'LiteTeleport.spawn'
+    permission-message: '§c你没有权限使用此命令!'
+  tpa:
+    description: '请求传送到指定的玩家。'
+    usage: '/tpa <player>'
+    permission: 'LiteTeleport.tpa'
+    permission-message: '§c你没有权限使用此命令!'
+  tpaccept:
+    description: '接受传送请求。'
+    usage: '/tpaccept'
+    aliases: 'tpyes'
+    permission: 'LiteTeleport.tpaccept'
+    permission-message: '§c你没有权限使用此命令!'
+  tpahere:
+    description: '请求指定的玩家传送到你的位置。'
+    usage: '/tpahere <player>'
+    permission: 'LiteTeleport.tpahere'
+    permission-message: '§c你没有权限使用此命令!'
+  tpacancel:
+    description: '取消未完成的传送请求。'
+    usage: '/tpacancel'
+    permission: 'LiteTeleport.tpacancel'
+    permission-message: '§c你没有权限使用此命令!'
+  tpdeny:
+    description: '拒绝传送请求。'
+    usage: '/tpdeny'
+    aliases: 'tpno'
+    permission: 'LiteTeleport.tpdeny'
+    permission-message: '§c你没有权限使用此命令!'
+  back:
+    description: '传送到上一位置。'
+    usage: '/back'
+    permission: 'LiteTeleport.back'
+    permission-message: '§c你没有权限使用此命令!'
+  sethome:
+    description: '设置家。'
+    usage: '/sethome [home name]'
+    permission: 'LiteTeleport.sethome'
+    permission-message: '§c你没有权限使用此命令!'
+  delhome:
+    description: '删除家。'
+    usage: '/delhome [home name]'
+    permission: 'LiteTeleport.delhome'
+    permission-message: '§c你没有权限使用此命令!'
+  home:
+    description: '回家。'
+    usage: '/home [home name]'
+    permission: 'LiteTeleport.home'
+    permission-message: '§c你没有权限使用此命令!'
+  tpr:
+    description: '随机传送。'
+    usage: '/tpr'
+    permission: 'LiteTeleport.tpr'
+    permission-message: '§c你没有权限使用此命令!'
+  setwarp:
+    description: '设置warp。'
+    usage: '/setwarp [warp]'
+    permission: 'LiteTeleport.setwarp'
+    permission-message: '§c你没有权限使用此命令!'
+  delwarp:
+    description: '删除warp。'
+    usage: '/delwarp [warp]'
+    permission: 'LiteTeleport.delwarp'
+    permission-message: '§c你没有权限使用此命令!'
+  warp:
+    description: '传送到指定的warp。'
+    usage: '/warp <warp>'
+    permission: 'LiteTeleport.warp'
+    permission-message: '§c你没有权限使用此命令!'
+permissions:
+  LiteTeleport.admin:
+    description: '允许使用管理员命令。'
+    default: 'op'
+  LiteTeleport.setspawn:
+    description: '允许使用/setspawn'
+    default: 'op'
+  LiteTeleport.spawn:
+    description: '允许使用/spawn'
+    default: true
+  LiteTeleport.tpa:
+    description: '允许使用/tpa'
+    default: true
+  LiteTeleport.tpaccept:
+    description: '允许使用/tpaccept'
+    default: true
+  LiteTeleport.tpahere:
+    description: '允许使用/tpahere'
+    default: true
+  LiteTeleport.tpacancel:
+    description: '允许使用/tpacancel'
+    default: true
+  LiteTeleport.tpdeny:
+    description: '允许使用/tpdeny'
+    default: true
+  LiteTeleport.back:
+    description: '允许使用/back'
+    default: true
+  LiteTeleport.sethome:
+    description: '允许使用/sethome'
+    default: true
+  LiteTeleport.delhome:
+    description: '允许使用/delhome'
+    default: true
+  LiteTeleport.home:
+    description: '允许使用/home'
+    default: true
+  LiteTeleport.tpr:
+    description: '允许使用/tpr'
+    default: true
+  LiteTeleport.setwarp:
+    description: '允许使用/setwarp'
+    default: 'op'
+  LiteTeleport.delwarp:
+    description: '允许使用/delwarp'
+    default: 'op'
+  LiteTeleport.warp:
+    description: '允许使用/warp'
+    default: true
