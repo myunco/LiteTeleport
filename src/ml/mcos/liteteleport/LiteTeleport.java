@@ -1,14 +1,17 @@
 package ml.mcos.liteteleport;
 
+import ml.mcos.liteteleport.metrics.Metrics;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -46,6 +49,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
         initConfig();
         mcVersion = Integer.parseInt(getServer().getClass().getPackage().getName().split("\\.")[3].split("_")[1]);
+        new Metrics(this, 12936);
     }
 
     public void initConfig() {
@@ -202,7 +206,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 player.setLevel(player.getLevel() - Config.backConsumeI);
             }
         }
-        backList.put(player, player.getLocation());
+        //backList.put(player, player.getLocation());
         player.sendMessage("§6正在回到上一位置...");
         player.teleport(backLoc);
     }
@@ -268,7 +272,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                     player.setLevel(player.getLevel() - Config.homeConsumeI);
                 }
             }
-            backList.put(player, player.getLocation());
+            //backList.put(player, player.getLocation());
             //player.sendMessage("§6正在传送..");
             player.sendMessage("§6传送到§c" + homeName + "§6。");
             player.teleport(HomeInfo.getHomeLocation(playerName, homeName));
@@ -349,7 +353,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 player.setLevel(player.getLevel() - Config.spawnConsumeI);
             }
         }
-        backList.put(player, player.getLocation());
+        //backList.put(player, player.getLocation());
         player.sendMessage("§6正在传送...");
         player.teleport(getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation());
     }
@@ -425,11 +429,11 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         tpRequest.source.sendMessage("§c" + player.getDisplayName() + "§6接受了你的传送请求。");
         if (tpRequest.teleportType == 0) { //发起者传送到接受者
             player.sendMessage("§6已接受传送请求。");
-            backList.put(tpRequest.source, tpRequest.source.getLocation());
+            //backList.put(tpRequest.source, tpRequest.source.getLocation());
             tpRequest.source.sendMessage("§6正在传送至§c" + player.getDisplayName() + "§6。");
             tpRequest.source.teleport(player.getLocation());
         } else { //接受者传送到发起者
-            backList.put(player, player.getLocation());
+            //backList.put(player, player.getLocation());
             player.sendMessage("§6正在传送...");
             player.teleport(tpRequest.location);
         }
@@ -525,7 +529,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             return;
         }
         RandomTeleport.setTprCount(playerName, n);
-        backList.put(player, player.getLocation());
+        //backList.put(player, player.getLocation());
         player.sendMessage("§6正在传送...");
         player.teleport(loc);
     }
@@ -548,11 +552,21 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                     player.setLevel(player.getLevel() - Config.warpConsumeI);
                 }
             }
-            backList.put(player, player.getLocation());
+            //backList.put(player, player.getLocation());
             player.sendMessage("§6传送到§c" + args[0] + "§6。");
             player.teleport(WarpInfo.getWarpLocation(args[0]));
         } else {
             player.sendMessage("§c错误：§4该传送点不存在。");
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void playerTeleportEvent(PlayerTeleportEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN || event.getCause() == PlayerTeleportEvent.TeleportCause.COMMAND) {
+            backList.put(event.getPlayer(), event.getFrom());
         }
     }
 
