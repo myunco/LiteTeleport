@@ -1,5 +1,6 @@
 package ml.mcos.liteteleport;
 
+import ml.mcos.liteteleport.config.Config;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -86,7 +87,7 @@ public class RandomTeleport {
         Location playerLoc = player.getLocation(), randomLoc = playerLoc.clone();
         boolean flag = true;
         for (int i = 0; i < 14; i++) {
-            randomXZ(randomLoc, Config.tprMaxRadiusI, Config.tprMinRadiusI);
+            randomXZ(randomLoc, Config.tprMaxRadius, Config.tprMinRadius);
             randomLoc.setY(player.getWorld().getHighestBlockYAt(randomLoc));
             if (LiteTeleport.mcVersion < 15) {
                 randomLoc.setY(randomLoc.getY() - 1);
@@ -112,7 +113,7 @@ public class RandomTeleport {
         Location playerLoc = player.getLocation(), randomLoc = playerLoc.clone();
         boolean flag = true;
         a: for (int i = 0; i < 14; i++) {
-            randomXZ(randomLoc, Config.tprMaxRadiusI, Config.tprMinRadiusI);
+            randomXZ(randomLoc, Config.tprMaxRadius, Config.tprMinRadius);
             for (int j = 122; j > 30; j--) {
                 randomLoc.setY(j);
                 if (isUnsafeLoc(player.getWorld(), (int) randomLoc.getX(), (int) randomLoc.getY(), (int) randomLoc.getZ())) {

@@ -1,6 +1,6 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.7.1
+version: 1.8.0
 api-version: 1.13
 commands:
   LiteTeleport:
@@ -135,3 +135,12 @@ permissions:
   LiteTeleport.warp:
     description: '允许使用/warp'
     default: true
+  LiteTeleport.free:
+    description: '使用除/tpr之外的传送命令免费'
+    default: 'op'
+  LiteTeleport.free.tpr:
+    description: '使用/tpr命令免费'
+    default: 'op'
+  LiteTeleport.free.sethome:
+    description: '使用/sethome命令免费'
+    default: 'op'

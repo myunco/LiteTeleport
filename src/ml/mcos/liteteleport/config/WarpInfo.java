@@ -1,5 +1,6 @@
-package ml.mcos.liteteleport;
+package ml.mcos.liteteleport.config;
 
+import ml.mcos.liteteleport.LiteTeleport;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 
