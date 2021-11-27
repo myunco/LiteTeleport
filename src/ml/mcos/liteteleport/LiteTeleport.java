@@ -32,30 +32,14 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     public HashMap<Player, Location> backList = new HashMap<>();
     public HashMap<String, List<String>> tabList = new HashMap<>();
     public static int mcVersion;
+    public static int mcVersionPatch;
 
     @Override
     public void onEnable() {
         plugin = this;
-        /*
-        getServer().getPluginCommand("back").setExecutor(this);
-        getServer().getPluginCommand("delhome").setExecutor(this);
-        getServer().getPluginCommand("delwarp").setExecutor(this);
-        getServer().getPluginCommand("home").setExecutor(this);
-        getServer().getPluginCommand("sethome").setExecutor(this);
-        getServer().getPluginCommand("setspawn").setExecutor(this);
-        getServer().getPluginCommand("setwarp").setExecutor(this);
-        getServer().getPluginCommand("spawn").setExecutor(this);
-        getServer().getPluginCommand("tpa").setExecutor(this);
-        getServer().getPluginCommand("tpacancel").setExecutor(this);
-        getServer().getPluginCommand("tpaccept").setExecutor(this);
-        getServer().getPluginCommand("tpahere").setExecutor(this);
-        getServer().getPluginCommand("tpdeny").setExecutor(this);
-        getServer().getPluginCommand("tpr").setExecutor(this);
-        getServer().getPluginCommand("warp").setExecutor(this);
-        */
-        getServer().getPluginManager().registerEvents(this, this);
+        mcVersion = getMinecraftVersion();
         initConfig();
-        mcVersion = Integer.parseInt(getServer().getClass().getPackage().getName().split("\\.")[3].split("_")[1]);
+        getServer().getPluginManager().registerEvents(this, this);
         new Metrics(this, 12936);
     }
 
@@ -67,6 +51,15 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         SpawnInfo.loadSpawnInfo();
         RandomTeleport.loadTprInfo();
         WarpInfo.loadWarpInfo();
+    }
+
+    int getMinecraftVersion() {
+        String[] version = getServer().getBukkitVersion().replace('-', '.').split("\\.");
+        try {
+            mcVersionPatch = Integer.parseInt(version[2]);
+        } catch (NumberFormatException ignored) {
+        }
+        return Integer.parseInt(version[1]);
     }
 
     @Override
@@ -356,7 +349,12 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     }
 
     private void commandSetspawn(Player player) {
-        player.getWorld().setSpawnLocation(player.getLocation());
+        if (mcVersion > 12 || (mcVersion == 12 && mcVersionPatch == 2)) {
+            player.getWorld().setSpawnLocation(player.getLocation());
+        } else {
+            Location loc = player.getLocation();
+            player.getWorld().setSpawnLocation(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+        }
         SpawnInfo.setSpawnWorld(player.getWorld().getName());
         player.sendMessage("§6已将世界出生点设为当前位置。");
     }
