@@ -84,7 +84,7 @@ public class RandomTeleport {
     }
 
     public static Location getRandomLoc(Player player) {
-        Location playerLoc = player.getLocation(), randomLoc = playerLoc.clone();
+        Location centerLoc = Config.tprCenter ? player.getWorld().getSpawnLocation() : player.getLocation(), randomLoc = centerLoc.clone();
         boolean flag = true;
         for (int i = 0; i < 14; i++) {
             randomXZ(randomLoc, Config.tprMaxRadius, Config.tprMinRadius);
@@ -93,8 +93,8 @@ public class RandomTeleport {
                 randomLoc.setY(randomLoc.getY() - 1);
             }
             if (isUnsafeLoc(player.getWorld(), (int) randomLoc.getX(), (int) randomLoc.getY(), (int) randomLoc.getZ())) {
-                randomLoc.setX(playerLoc.getX());
-                randomLoc.setZ(playerLoc.getZ());
+                randomLoc.setX(centerLoc.getX());
+                randomLoc.setZ(centerLoc.getZ());
                 continue;
             }
             flag = false;
@@ -110,7 +110,7 @@ public class RandomTeleport {
     }
 
     public static Location getRandomLocByNether(Player player) {
-        Location playerLoc = player.getLocation(), randomLoc = playerLoc.clone();
+        Location centerLoc = Config.tprCenter ? player.getWorld().getSpawnLocation() : player.getLocation(), randomLoc = centerLoc.clone();
         boolean flag = true;
         a: for (int i = 0; i < 14; i++) {
             randomXZ(randomLoc, Config.tprMaxRadius, Config.tprMinRadius);
@@ -122,8 +122,8 @@ public class RandomTeleport {
                 flag = false;
                 break a;
             }
-            randomLoc.setX(playerLoc.getX());
-            randomLoc.setZ(playerLoc.getZ());
+            randomLoc.setX(centerLoc.getX());
+            randomLoc.setZ(centerLoc.getZ());
         }
         if (flag) {
             return null;

@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings({"ConstantConditions"})
+@SuppressWarnings("ConstantConditions")
 public class LiteTeleport extends JavaPlugin implements Listener {
     public static LiteTeleport plugin;
     public HashMap<Player, TeleportRequest> tpList = new HashMap<>();

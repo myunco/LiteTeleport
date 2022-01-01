@@ -1,39 +1,57 @@
 #spawn消耗的经验等级
 spawnConsume: 1
+
 #发起传送请求者消耗的经验等级
 tpSourceConsume: 2
+
 #接受传送请求者消耗的经验等级
 tpAcceptConsume: 1
+
 #back消耗的经验等级
 backConsume: 1
+
 #玩家死亡后赠送的经验等级 建议和back的消耗相同
 #可以避免死亡掉落导致玩家没经验回死亡地点捡掉落物
 #注意 此项仅在游戏规则为死亡掉落的情况下生效
 deathGiveExp: 1
+
 #首次设置家消耗的经验等级
 firstSethomeConsume: 1
+
 #非首次设置家消耗的经验等级的系数 0表示不消耗等级
 #设置第N个家花费的等级 = (int) (N ^ 系数)
 sethomeConsume: 3.14
+
 #设置家花费的经验等级上限 0表示无上限
 #当上面的公式产生的结果超出上限值时 超出的部分会被抹去
 sethomeMaxConsume: 0
+
 #回家消耗的经验等级
 homeConsume: 0
+
 #warp消耗的经验等级
 warpConsume: 1
+
 #首次使用随机传送消耗的经验等级
 firstTprConsume: 1
+
 #非首次随机传送消耗的经验等级系数 0表示不消耗等级
 #第N次使用随机传送花费的等级 = (int) (N ^ 系数)
 tprConsume: 2.56
+
 #随机传送花费的经验等级上限 0表示无上限
 #当上面的公式产生的结果超出上限值时 超出的部分会被抹去
 tprMaxConsume: 0
-#随机传送的最小半径 (相对于玩家位置)
+
+#随机传送的中心点 true表示以世界出生点位置为中心 false表示以玩家所在位置为中心
+tprCenter: false
+
+#随机传送的最小半径 (相对于中心点位置)
 tprMinRadius: 2000
-#随机传送的最大半径 (相对于玩家位置)
+
+#随机传送的最大半径 (相对于中心点位置)
 tprMaxRadius: 500000
+
 #允许随机传送的世界
 allowTprWorld:
   - world

@@ -17,6 +17,7 @@ public class Config {
     public static int firstTprConsume;
     public static double tprConsume;
     public static int tprMaxConsume;
+    public static boolean tprCenter;
     public static int tprMinRadius;
     public static int tprMaxRadius;
     public static List<String> allowTprWorld;
@@ -35,6 +36,7 @@ public class Config {
         firstTprConsume = config.getInt("firstTprConsume");
         tprConsume = config.getDouble("tprConsume");
         tprMaxConsume = config.getInt("tprMaxConsume");
+        tprCenter = config.getBoolean("tprCenter");
         tprMinRadius = config.getInt("tprMinRadius");
         tprMaxRadius = config.getInt("tprMaxRadius");
         allowTprWorld = config.getStringList("allowTprWorld");
