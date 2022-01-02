@@ -67,8 +67,8 @@ public class HomeInfo {
         return builder.toString();
     }
 
-    public static boolean isBanName(String homeName) {
-        //return homeName.equals("null") || !homeName.matches("[0-9A-Za-z\u4e00-\u9fff`~!@#$%^&*()_+\\-=]*");
-        return homeName.indexOf('.') != -1;
+    public static boolean isBanName(String name) {
+        //return name.equals("null") || !name.matches("[0-9A-Za-z\u4e00-\u9fff`~!@#$%^&*()_+\\-=]*");
+        return name.indexOf('.') != -1;
     }
 }

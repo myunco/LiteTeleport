@@ -28,14 +28,8 @@ public class WarpInfo {
         warpInfo = Config.loadConfiguration(warps);
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static Location getWarpLocation(String warp) {
-        if (!warpInfo.contains(warp)) {
-            return null;
-        }
-        return new Location(plugin.getServer().getWorld(warpInfo.getString(warp + ".world")), warpInfo.getDouble(warp + ".x"),
-                warpInfo.getDouble(warp + ".y"), warpInfo.getDouble(warp + ".z"), (float) warpInfo.getDouble(warp + ".yaw"),
-                (float) warpInfo.getDouble(warp + ".pitch"));
+        return Config.getLocation(warpInfo, warp);
     }
 
     public static void setWarpLocation(String warp, Location loc) {
@@ -73,7 +67,8 @@ public class WarpInfo {
         return stringBuilder.toString();
     }
 
-    public static boolean isBanName(String homeName) {
-        return homeName.equals("null") || !homeName.matches("[0-9A-Za-z\u4E00-\u9FFF_+=-]*");
+    public static boolean isBanName(String name) {
+        //return name.equals("null") || !name.matches("[0-9A-Za-z\u4E00-\u9FFF_+=-]*");
+        return name.indexOf('.') != -1;
     }
 }

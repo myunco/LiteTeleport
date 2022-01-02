@@ -6,39 +6,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 
 public class RandomTeleport {
-    public static LiteTeleport plugin = LiteTeleport.plugin;
-    public static File tpr = new File(plugin.getDataFolder(), "tpr.yml");
-    public static YamlConfiguration tprInfo;
-
-    public static void loadTprInfo() {
-        if (!tpr.exists()) {
-            try {
-                if (!tpr.createNewFile()) {
-                    plugin.getServer().getLogger().warning("错误：创建tpr.yml失败！");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        tprInfo = Config.loadConfiguration(tpr);
-    }
-
-    public static int getTprCount(String player) {
-        return tprInfo.getInt(player + ".tprCount");
-    }
-
-    public static void setTprCount(String player, int count) {
-        tprInfo.set(player + ".tprCount", count);
-        Config.saveConfiguration(tprInfo, tpr);
-    }
 
     public static boolean isUnsafeLoc(World world, int x, int y, int z) {
         int mcVersion = LiteTeleport.mcVersion;
@@ -108,7 +80,8 @@ public class RandomTeleport {
     public static Location getRandomLocByNether(Player player) {
         Location centerLoc = Config.tprCenter ? player.getWorld().getSpawnLocation() : player.getLocation(), randomLoc = centerLoc.clone();
         boolean flag = true;
-        a: for (int i = 0; i < 14; i++) {
+        a:
+        for (int i = 0; i < 14; i++) {
             randomXZ(randomLoc, Config.tprMaxRadius, Config.tprMinRadius);
             for (int j = 122; j > 30; j--) {
                 randomLoc.setY(j);

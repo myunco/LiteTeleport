@@ -3,6 +3,7 @@ package ml.mcos.liteteleport;
 import ml.mcos.liteteleport.config.Config;
 import ml.mcos.liteteleport.config.HomeInfo;
 import ml.mcos.liteteleport.config.SpawnInfo;
+import ml.mcos.liteteleport.config.TprInfo;
 import ml.mcos.liteteleport.config.WarpInfo;
 import ml.mcos.liteteleport.metrics.Metrics;
 import ml.mcos.liteteleport.teleport.RandomTeleport;
@@ -45,7 +46,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         Config.loadConfig();
         HomeInfo.loadHomeInfo();
         SpawnInfo.loadSpawnInfo();
-        RandomTeleport.loadTprInfo();
+        TprInfo.loadTprInfo();
         WarpInfo.loadWarpInfo();
     }
 
@@ -463,7 +464,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             player.sendMessage("§c错误：§4你所在的世界不允许使用随机传送。");
             return;
         }
-        int consume = 0, n = RandomTeleport.getTprCount(playerName) + 1;
+        int consume = 0, n = TprInfo.getTprCount(playerName) + 1;
         if (Config.tprConsume != 0 && !hasFreeTprPermission(player)) {
             if (n == 1) {
                 consume = Config.firstTprConsume;
@@ -503,7 +504,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             }
             return;
         }
-        RandomTeleport.setTprCount(playerName, n);
+        TprInfo.setTprCount(playerName, n);
         player.sendMessage("§6正在传送...");
         player.teleport(loc);
     }
