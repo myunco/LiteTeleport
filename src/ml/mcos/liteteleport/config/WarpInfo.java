@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("DuplicatedCode")
 public class WarpInfo {
     public static LiteTeleport plugin = LiteTeleport.plugin;
     public static File warps = new File(plugin.getDataFolder(), "warps.yml");
@@ -20,13 +19,13 @@ public class WarpInfo {
         if (!warps.exists()) {
             try {
                 if (!warps.createNewFile()) {
-                    plugin.getServer().getLogger().warning("错误：创建warps.yml失败！");
+                    plugin.getServer().getLogger().warning("错误: 创建warps.yml失败！");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        warpInfo = YamlConfiguration.loadConfiguration(warps);
+        warpInfo = Config.loadConfiguration(warps);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -39,28 +38,14 @@ public class WarpInfo {
                 (float) warpInfo.getDouble(warp + ".pitch"));
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static void setWarpLocation(String warp, Location loc) {
-        warpInfo.set(warp + ".world", loc.getWorld().getName());
-        warpInfo.set(warp + ".x", loc.getX());
-        warpInfo.set(warp + ".y", loc.getY());
-        warpInfo.set(warp + ".z", loc.getZ());
-        warpInfo.set(warp + ".yaw", loc.getYaw());
-        warpInfo.set(warp + ".pitch", loc.getPitch());
-        try {
-            warpInfo.save(warps);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Config.setLocation(warpInfo, warp, loc);
+        Config.saveConfiguration(warpInfo, warps);
     }
 
     public static void deleteWarp(String warp) {
         warpInfo.set(warp, null);
-        try {
-            warpInfo.save(warps);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Config.saveConfiguration(warpInfo, warps);
     }
 
     public static boolean exist(String warp) {

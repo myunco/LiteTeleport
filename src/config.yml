@@ -44,7 +44,7 @@ tprConsume: 2.56
 tprMaxConsume: 0
 
 #随机传送的中心点 true表示以世界出生点位置为中心 false表示以玩家所在位置为中心
-tprCenter: false
+tprCenter: true
 
 #随机传送的最小半径 (相对于中心点位置)
 tprMinRadius: 2000

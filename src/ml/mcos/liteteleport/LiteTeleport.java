@@ -5,6 +5,8 @@ import ml.mcos.liteteleport.config.HomeInfo;
 import ml.mcos.liteteleport.config.SpawnInfo;
 import ml.mcos.liteteleport.config.WarpInfo;
 import ml.mcos.liteteleport.metrics.Metrics;
+import ml.mcos.liteteleport.teleport.RandomTeleport;
+import ml.mcos.liteteleport.teleport.TeleportRequest;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -18,9 +20,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,6 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     public static LiteTeleport plugin;
     public HashMap<Player, TeleportRequest> tpList = new HashMap<>();
     public HashMap<Player, Location> backList = new HashMap<>();
-    public HashMap<String, List<String>> tabList = new HashMap<>();
     public static int mcVersion;
     public static int mcVersionPatch;
 
@@ -44,9 +42,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     }
 
     public void initConfig() {
-        saveDefaultConfig();
-        reloadConfig();
-        Config.loadConfig(getConfig());
+        Config.loadConfig();
         HomeInfo.loadHomeInfo();
         SpawnInfo.loadSpawnInfo();
         RandomTeleport.loadTprInfo();
@@ -63,13 +59,12 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     }
 
     @Override
-    @SuppressWarnings("notnull")
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equals("LiteTeleport")) {
             if (args.length == 1) {
                 switch (args[0]) {
                     case "version":
-                        sender.sendMessage("§a当前版本：§b" + getDescription().getVersion());
+                        sender.sendMessage("§a当前版本: §b" + getDescription().getVersion());
                         return true;
                     case "reload":
                         initConfig();
@@ -137,64 +132,23 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (tabList.isEmpty()) {
-            tabList.put("LiteTeleport", Arrays.asList("version", "reload"));
-            tabList.put("tpa", Collections.emptyList());
-            tabList.put("tpahere", Collections.emptyList());
-        }
         if (sender instanceof Player) {
             Player player = (Player) sender;
             switch (command.getName()) {
                 case "home":
                 case "delhome":
                     if (args.length == 1) {
-                        return getTabList(args, HomeInfo.getHomeList(player.getName()), true);
+                        return TabComplete.getCompleteList(args, HomeInfo.getHomeList(player.getName()), true);
                     }
                     break;
                 case "warp":
                 case "delwarp":
                     if (args.length == 1) {
-                        return getTabList(args, WarpInfo.getWarpList(), true);
+                        return TabComplete.getCompleteList(args, WarpInfo.getWarpList(), true);
                     }
             }
         }
-        return getTabList(args, tabList.get(getTabPath(args, command.getName())));
-    }
-
-    private static String getTabPath(String[] args, String command) {
-        StringBuilder builder = new StringBuilder(command);
-        for (int i = 1; i < args.length; i++) {
-            builder.append(".").append(args[i - 1].toLowerCase());
-        }
-        return builder.toString();
-    }
-
-    private static List<String> getTabList(String[] args, List<String> list) {
-        return getTabList(args, list, false);
-    }
-
-    private static List<String> getTabList(String[] args, List<String> list, boolean listToLowerCase) {
-        List<String> ret = new ArrayList<>();
-        if (list == null) {
-            return ret;
-        } else if (list.isEmpty()) {
-            return null; //返回null时 游戏会用线玩家的名字列表作为候选
-        } else if (args[args.length - 1].equals("")) {
-            return list;
-        }
-        String arg = args[args.length - 1].toLowerCase();
-        for (String value : list) {
-            if (listToLowerCase) {
-                if (value.toLowerCase().startsWith(arg)) {
-                    ret.add(value);
-                }
-            } else {
-                if (value.startsWith(arg)) {
-                    ret.add(value);
-                }
-            }
-        }
-        return ret;
+        return TabComplete.getCompleteList(args, TabComplete.getTabList(args, command.getName()));
     }
 
     private boolean consume(Player player, int consume, String msg, String failMsg) {
@@ -248,7 +202,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private void commandDelhome(String[] args, Player player, String playerName) {
         String homeName;
         if (args.length != 1) {
-            player.sendMessage("§c错误：请使用§6/delhome [名字]");
+            player.sendMessage("§c错误：请使用§6/delhome <家名称>");
             return;
         } else {
             homeName = args[0];
@@ -344,18 +298,18 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 return;
             }
         }
-        HomeInfo.saveHome(playerName, homeName, player.getLocation());
+        HomeInfo.setHome(playerName, homeName, player.getLocation());
         player.sendMessage("§6已设置家。");
     }
 
     private void commandSetspawn(Player player) {
+        Location loc = player.getLocation();
         if (mcVersion > 12 || (mcVersion == 12 && mcVersionPatch == 2)) {
-            player.getWorld().setSpawnLocation(player.getLocation());
+            player.getWorld().setSpawnLocation(loc);
         } else {
-            Location loc = player.getLocation();
             player.getWorld().setSpawnLocation(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         }
-        SpawnInfo.setSpawnWorld(player.getWorld().getName());
+        SpawnInfo.setSpawn(loc);
         player.sendMessage("§6已将世界出生点设为当前位置。");
     }
 
@@ -377,7 +331,8 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         if (teleportConsume(player, Config.spawnConsume)) {
             player.sendMessage("§6正在传送...");
-            player.teleport(getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation());
+            Location loc = SpawnInfo.getSpawnLocation();
+            player.teleport(loc == null ? getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation() : loc);
         }
     }
 

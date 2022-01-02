@@ -1,4 +1,4 @@
-package ml.mcos.liteteleport;
+package ml.mcos.liteteleport.teleport;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

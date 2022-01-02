@@ -1,6 +1,7 @@
 package ml.mcos.liteteleport.config;
 
 import ml.mcos.liteteleport.LiteTeleport;
+import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -15,25 +16,26 @@ public class SpawnInfo {
         if (!spawn.exists()) {
             try {
                 if (!spawn.createNewFile()) {
-                    plugin.getServer().getLogger().warning("错误：创建spawn.yml失败！");
+                    plugin.getServer().getLogger().warning("错误: 创建spawn.yml失败！");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        spawnInfo = YamlConfiguration.loadConfiguration(spawn);
+        spawnInfo = Config.loadConfiguration(spawn);
     }
 
     public static String getSpawnWorld() {
-        return spawnInfo.contains("world") ? spawnInfo.getString("world") : "world";
+        return spawnInfo.getString("world", "world");
     }
 
-    public static void setSpawnWorld(String world) {
-        spawnInfo.set("world", world);
-        try {
-            spawnInfo.save(spawn);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static Location getSpawnLocation() {
+        return spawnInfo.contains("spawn.world") ? Config.getLocation(spawnInfo, "spawn") : null;
     }
+
+    public static void setSpawn(Location loc) {
+        Config.setLocation(spawnInfo, "spawn", loc);
+        Config.saveConfiguration(spawnInfo, spawn);
+    }
+
 }

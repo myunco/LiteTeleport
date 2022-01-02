@@ -1,5 +1,6 @@
-package ml.mcos.liteteleport;
+package ml.mcos.liteteleport.teleport;
 
+import ml.mcos.liteteleport.LiteTeleport;
 import ml.mcos.liteteleport.config.Config;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
-@SuppressWarnings("unused")
 public class RandomTeleport {
     public static LiteTeleport plugin = LiteTeleport.plugin;
     public static File tpr = new File(plugin.getDataFolder(), "tpr.yml");
@@ -28,7 +28,7 @@ public class RandomTeleport {
                 e.printStackTrace();
             }
         }
-        tprInfo = YamlConfiguration.loadConfiguration(tpr);
+        tprInfo = Config.loadConfiguration(tpr);
     }
 
     public static int getTprCount(String player) {
@@ -37,11 +37,7 @@ public class RandomTeleport {
 
     public static void setTprCount(String player, int count) {
         tprInfo.set(player + ".tprCount", count);
-        try {
-            tprInfo.save(tpr);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Config.saveConfiguration(tprInfo, tpr);
     }
 
     public static boolean isUnsafeLoc(World world, int x, int y, int z) {

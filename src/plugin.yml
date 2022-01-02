@@ -1,6 +1,6 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.8.2-SNAPSHOT
+version: 1.9.0-SNAPSHOT
 api-version: 1.13
 commands:
   LiteTeleport:
@@ -15,7 +15,7 @@ commands:
     permission: 'LiteTeleport.setspawn'
     permission-message: '§c你没有权限使用此命令!'
   spawn:
-    description: '传送到setspawn设置的世界的出生点。'
+    description: '传送到/setspawn设置的位置。'
     usage: '/spawn'
     permission: 'LiteTeleport.spawn'
     permission-message: '§c你没有权限使用此命令!'
@@ -72,17 +72,17 @@ commands:
     permission: 'LiteTeleport.tpr'
     permission-message: '§c你没有权限使用此命令!'
   setwarp:
-    description: '设置warp。'
-    usage: '/setwarp [warp]'
+    description: '设置传送点。'
+    usage: '/setwarp <warp>'
     permission: 'LiteTeleport.setwarp'
     permission-message: '§c你没有权限使用此命令!'
   delwarp:
-    description: '删除warp。'
-    usage: '/delwarp [warp]'
+    description: '删除传送点。'
+    usage: '/delwarp <warp>'
     permission: 'LiteTeleport.delwarp'
     permission-message: '§c你没有权限使用此命令!'
   warp:
-    description: '传送到指定的warp。'
+    description: '传送到指定的传送点。'
     usage: '/warp <warp>'
     permission: 'LiteTeleport.warp'
     permission-message: '§c你没有权限使用此命令!'
@@ -136,7 +136,7 @@ permissions:
     description: '允许使用/warp'
     default: true
   LiteTeleport.free:
-    description: '使用除/tpr之外的传送命令免费'
+    description: '使用除/tpr和/sethome之外的传送命令免费'
     default: 'op'
   LiteTeleport.free.tpr:
     description: '使用/tpr命令免费'
