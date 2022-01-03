@@ -68,7 +68,6 @@ public class WarpInfo {
     }
 
     public static boolean isBanName(String name) {
-        //return name.equals("null") || !name.matches("[0-9A-Za-z\u4E00-\u9FFF_+=-]*");
         return name.indexOf('.') != -1;
     }
 }

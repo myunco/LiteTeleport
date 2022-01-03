@@ -1,3 +1,6 @@
+#检查更新 true为启用 false为禁用
+checkUpdate: true
+
 #spawn消耗的经验等级
 spawnConsume: 1
 

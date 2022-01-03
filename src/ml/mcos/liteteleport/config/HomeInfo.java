@@ -68,7 +68,6 @@ public class HomeInfo {
     }
 
     public static boolean isBanName(String name) {
-        //return name.equals("null") || !name.matches("[0-9A-Za-z\u4e00-\u9fff`~!@#$%^&*()_+\\-=]*");
         return name.indexOf('.') != -1;
     }
 }
