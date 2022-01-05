@@ -2,6 +2,9 @@ name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
 version: 1.9.0-SNAPSHOT
 api-version: 1.13
+softdepend:
+  - Vault
+  - PlayerPoints
 commands:
   LiteTeleport:
     description: 'This is main command of the plugin.'
@@ -143,4 +146,7 @@ permissions:
     default: 'op'
   LiteTeleport.free.sethome:
     description: '使用/sethome命令免费'
+    default: 'op'
+  LiteTeleport.cooldown.bypass:
+    description: '使用传送命令不受冷却时间限制'
     default: 'op'

@@ -1,6 +1,7 @@
 package ml.mcos.liteteleport.config;
 
 import ml.mcos.liteteleport.LiteTeleport;
+import ml.mcos.liteteleport.consume.ConsumeInfo;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -17,39 +18,48 @@ import java.util.List;
 
 public class Config {
     public static LiteTeleport plugin = LiteTeleport.plugin;
-    public static int spawnConsume;
-    public static int tpSourceConsume;
-    public static int tpAcceptConsume;
-    public static int backConsume;
+    public static boolean checkUpdate;
+    public static int tpCooldown;
+    public static ConsumeInfo spawnConsume;
+    public static ConsumeInfo tpSourceConsume;
+    public static ConsumeInfo tpAcceptConsume;
+    public static ConsumeInfo backConsume;
     public static int deathGiveExp;
-    public static int firstSethomeConsume;
+    public static ConsumeInfo firstSethomeConsume;
     public static double sethomeConsume;
+    public static ConsumeInfo.ConsumeType sethomeConsumeType;
     public static int sethomeMaxConsume;
-    public static int homeConsume;
-    public static int warpConsume;
-    public static int firstTprConsume;
+    public static ConsumeInfo homeConsume;
+    public static ConsumeInfo warpConsume;
+    public static ConsumeInfo firstTprConsume;
     public static double tprConsume;
+    public static ConsumeInfo.ConsumeType tprConsumeType;
     public static int tprMaxConsume;
     public static boolean tprCenter;
     public static int tprMinRadius;
     public static int tprMaxRadius;
     public static List<String> allowTprWorld;
 
+    public static boolean useEconomy;
+    public static boolean usePoints;
+
     public static void loadConfig() {
         plugin.saveDefaultConfig();
         YamlConfiguration config = loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
-        spawnConsume = config.getInt("spawnConsume");
-        tpSourceConsume = config.getInt("tpSourceConsume");
-        tpAcceptConsume = config.getInt("tpAcceptConsume");
-        backConsume = config.getInt("backConsume");
+        checkUpdate = config.getBoolean("checkUpdate", true);
+        tpCooldown = config.getInt("tpCooldown");
+        spawnConsume = getConsumeInfo(config, "spawnConsume");
+        tpSourceConsume = getConsumeInfo(config, "tpSourceConsume");
+        tpAcceptConsume = getConsumeInfo(config, "tpAcceptConsume");
+        backConsume = getConsumeInfo(config, "backConsume");
         deathGiveExp = config.getInt("deathGiveExp");
-        firstSethomeConsume = config.getInt("firstSethomeConsume");
-        sethomeConsume = config.getDouble("sethomeConsume");
+        firstSethomeConsume = getConsumeInfo(config, "firstSethomeConsume");
+        sethomeConsume = getSethomeConsume(config);
         sethomeMaxConsume = config.getInt("sethomeMaxConsume");
-        homeConsume = config.getInt("homeConsume");
-        warpConsume = config.getInt("warpConsume");
-        firstTprConsume = config.getInt("firstTprConsume");
-        tprConsume = config.getDouble("tprConsume");
+        homeConsume = getConsumeInfo(config, "homeConsume");
+        warpConsume = getConsumeInfo(config, "warpConsume");
+        firstTprConsume = getConsumeInfo(config, "firstTprConsume");
+        tprConsume = getTprConsume(config);
         tprMaxConsume = config.getInt("tprMaxConsume");
         tprCenter = config.getBoolean("tprCenter");
         tprMinRadius = config.getInt("tprMinRadius");
@@ -82,6 +92,58 @@ public class Config {
             writer.write(config.saveToString());
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static ConsumeInfo getConsumeInfo(YamlConfiguration config, String path) {
+        String consume = config.getString(path);
+        ConsumeInfo.ConsumeType type = ConsumeInfo.ConsumeType.LEVEL;
+        int amount = 0;
+        if (consume != null) {
+            if (!consume.matches("[0-9]+[GgPpLl]?")) {
+                plugin.getLogger().warning("无效的花费，请检查格式是否正确：" + path + ": " + consume);
+            } else {
+                type = ConsumeInfo.getConsumeType(consume);
+                amount = ConsumeInfo.getConsumeAmount(consume);
+                checkConsumeType(type);
+            }
+        }
+        return new ConsumeInfo(type, amount);
+    }
+
+    private static double getConsumeDouble(String consume, String path) {
+        if (consume == null) {
+            return 0.0;
+        } else {
+            if (consume.indexOf('.') == -1) {
+                consume = consume + ".0";
+            }
+            if (!consume.matches("[0-9]+\\.[0-9]+[GgPpLl]?")) {
+                plugin.getLogger().warning("无效的花费，请检查格式是否正确：" + path + ": " + consume);
+            }
+            return ConsumeInfo.getConsumeAmountDouble(consume);
+        }
+    }
+
+    private static double getSethomeConsume(YamlConfiguration config) {
+        String consume = config.getString("sethomeConsume");
+        sethomeConsumeType = ConsumeInfo.getConsumeType(consume);
+        checkConsumeType(sethomeConsumeType);
+        return getConsumeDouble(consume, "sethomeConsume");
+    }
+
+    private static double getTprConsume(YamlConfiguration config) {
+        String consume = config.getString("tprConsume");
+        tprConsumeType = ConsumeInfo.getConsumeType(consume);
+        checkConsumeType(tprConsumeType);
+        return getConsumeDouble(consume, "tprConsume");
+    }
+
+    private static void checkConsumeType(ConsumeInfo.ConsumeType type) {
+        if (!useEconomy && type == ConsumeInfo.ConsumeType.ECONOMY) {
+            useEconomy = true;
+        } else if (!usePoints && type == ConsumeInfo.ConsumeType.POINTS) {
+            usePoints = true;
         }
     }
 

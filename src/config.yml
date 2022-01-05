@@ -1,48 +1,60 @@
 #检查更新 true为启用 false为禁用
 checkUpdate: true
 
-#spawn消耗的经验等级
-spawnConsume: 1
+#传送命令冷却时间 单位：秒
+tpCooldown: 0
 
-#发起传送请求者消耗的经验等级
-tpSourceConsume: 2
+#关于花费
+#花费支持 经验等级/金币/点券
+#在花费后面加上类型表示使用指定类型 不指定默认为经验等级
+#可选类型：L/G/P  L=经验等级 G=金币 P=点券  (不区分大小写)
+#正确格式示例：1L(表示1经验等级) 1G(表示1金币) 1P(表示1点券)
+#错误格式示例：1 L(不能有空格或其他字符) 1GPL(不能同时指定多种类型) 1A(不能指定未知的类型)
+#如果使用金币 需要安装Vault以及支持Vault的经济插件
+#如果使用点券 需要安装PlayerPoints插件
 
-#接受传送请求者消耗的经验等级
-tpAcceptConsume: 1
+#使用/spawn命令的花费
+spawnConsume: 1L
 
-#back消耗的经验等级
-backConsume: 1
+#发起传送请求者的花费
+tpSourceConsume: 2L
+
+#接受传送请求者的花费
+tpAcceptConsume: 1L
+
+#使用/back命令的花费
+backConsume: 1L
 
 #玩家死亡后赠送的经验等级 建议和back的消耗相同
 #可以避免死亡掉落导致玩家没经验回死亡地点捡掉落物
 #注意 此项仅在游戏规则为死亡掉落的情况下生效
 deathGiveExp: 1
 
-#首次设置家消耗的经验等级
-firstSethomeConsume: 1
+#首次设置家的花费
+firstSethomeConsume: 1L
 
-#非首次设置家消耗的经验等级的系数 0表示不消耗等级
-#设置第N个家花费的等级 = (int) (N ^ 系数)
-sethomeConsume: 3.14
+#非首次设置家的花费的系数 0表示无花费
+#设置第N个家花费的等级/金币/点券 = (int) (N ^ 系数)
+sethomeConsume: 3.14L
 
-#设置家花费的经验等级上限 0表示无上限
+#设置家的花费上限 0表示无上限
 #当上面的公式产生的结果超出上限值时 超出的部分会被抹去
 sethomeMaxConsume: 0
 
-#回家消耗的经验等级
-homeConsume: 0
+#使用/home命令的花费
+homeConsume: 0L
 
-#warp消耗的经验等级
-warpConsume: 1
+#使用/warp命令的花费
+warpConsume: 1L
 
-#首次使用随机传送消耗的经验等级
-firstTprConsume: 1
+#首次随机传送的花费
+firstTprConsume: 1L
 
-#非首次随机传送消耗的经验等级系数 0表示不消耗等级
-#第N次使用随机传送花费的等级 = (int) (N ^ 系数)
-tprConsume: 2.56
+#非首次随机传送消耗的花费的系数 0表示无花费
+#第N次随机传送花费的等级/金币/点券 = (int) (N ^ 系数)
+tprConsume: 2.56L
 
-#随机传送花费的经验等级上限 0表示无上限
+#随机传送的花费上限 0表示无上限
 #当上面的公式产生的结果超出上限值时 超出的部分会被抹去
 tprMaxConsume: 0
 

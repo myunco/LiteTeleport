@@ -1,11 +1,16 @@
 package ml.mcos.liteteleport.teleport;
 
+import ml.mcos.liteteleport.LiteTeleport;
 import org.bukkit.Location;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+
 public class TeleportRequest {
+    public static Server server = LiteTeleport.plugin.getServer();
     public int teleportType;
-    public Player source;
+    public UUID source;
     public Location location;
 
     public TeleportRequest(Player source) {
@@ -20,9 +25,13 @@ public class TeleportRequest {
      */
     public TeleportRequest(int teleportType, Player source, Location location) {
         this.teleportType = teleportType;
-        this.source = source;
+        this.source = source.getUniqueId();
         if (teleportType == 1) {
             this.location = location;
         }
+    }
+
+    public Player getSource() {
+        return server.getPlayer(source);
     }
 }

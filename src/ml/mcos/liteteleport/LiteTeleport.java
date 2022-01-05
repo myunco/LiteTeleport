@@ -5,10 +5,14 @@ import ml.mcos.liteteleport.config.HomeInfo;
 import ml.mcos.liteteleport.config.SpawnInfo;
 import ml.mcos.liteteleport.config.TprInfo;
 import ml.mcos.liteteleport.config.WarpInfo;
+import ml.mcos.liteteleport.consume.ConsumeInfo;
 import ml.mcos.liteteleport.metrics.Metrics;
 import ml.mcos.liteteleport.teleport.RandomTeleport;
 import ml.mcos.liteteleport.teleport.TeleportRequest;
 import ml.mcos.liteteleport.update.UpdateChecker;
+import net.milkbowl.vault.economy.Economy;
+import org.black_ixx.playerpoints.PlayerPoints;
+import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -18,26 +22,37 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class LiteTeleport extends JavaPlugin implements Listener {
     public static LiteTeleport plugin;
-    public HashMap<Player, TeleportRequest> tpList = new HashMap<>();
-    public HashMap<Player, Location> backList = new HashMap<>();
+    public HashMap<UUID, TeleportRequest> tpList = new HashMap<>();
+    public HashMap<UUID, Location> backList = new HashMap<>();
+    public HashMap<UUID, Long> cdList = new HashMap<>();
     public static int mcVersion;
     public static int mcVersionPatch;
+    public static Economy economy;
+    public static PlayerPointsAPI pointsAPI;
 
     @Override
     public void onEnable() {
         plugin = this;
         mcVersion = getMinecraftVersion();
         initConfig();
+        if (Config.useEconomy) {
+            setupEconomy();
+        }
+        if (Config.usePoints) {
+            setupPointsAPI();
+        }
         getServer().getPluginManager().registerEvents(this, this);
         new Metrics(this, 12936);
     }
@@ -53,10 +68,38 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         SpawnInfo.loadSpawnInfo();
         TprInfo.loadTprInfo();
         WarpInfo.loadWarpInfo();
-        UpdateChecker.start();
+        if (Config.checkUpdate) {
+            UpdateChecker.start();
+        }
     }
 
-    int getMinecraftVersion() {
+    public void setupEconomy() {
+        if (!getServer().getPluginManager().isPluginEnabled("Vault")) {
+            getLogger().severe("未找到Vault，请检查是否正确安装Vault插件！");
+            return;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            getLogger().severe("未找到经济系统，请检查是否正确安装经济提供插件！(如Essentials、CMI、Economy等)");
+            return;
+        }
+        economy = rsp.getProvider();
+    }
+
+    public void setupPointsAPI() {
+        Plugin playerPoints = getServer().getPluginManager().getPlugin("PlayerPoints");
+        if (playerPoints == null || !playerPoints.isEnabled()) {
+            getLogger().severe("未找到PlayerPoints，请检查是否正确安装点券插件！");
+            return;
+        }
+        pointsAPI = PlayerPoints.getInstance().getAPI();
+        //pointsAPI = ((PlayerPoints) playerPoints).getAPI();
+        if (pointsAPI == null) {
+            getLogger().severe("未能获取PlayerPointsAPI，可能是版本太旧，请尝试更新点券插件！");
+        }
+    }
+
+    private int getMinecraftVersion() {
         String[] version = getServer().getBukkitVersion().replace('-', '.').split("\\.");
         try {
             mcVersionPatch = Integer.parseInt(version[2]);
@@ -158,20 +201,20 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         return TabComplete.getCompleteList(args, TabComplete.getTabList(args, command.getName()));
     }
 
-    private boolean consume(Player player, int consume, String msg, String failMsg) {
-        if (consume != 0) {
+    private boolean consume(Player player, ConsumeInfo consume, String msg, String failMsg) {
+        if (consume.getAmount() != 0) {
             player.sendMessage(msg);
-            if (player.getLevel() < consume) {
+            if (consume.has(player) && consume.take(player)) {
+                return true;
+            } else {
                 player.sendMessage(failMsg);
                 return false;
-            } else {
-                player.setLevel(player.getLevel() - consume);
             }
         }
         return true;
     }
 
-    private boolean teleportConsume(Player player, int consume) {
+    private boolean teleportConsume(Player player, ConsumeInfo consume) {
         if (hasFreePermission(player)) {
             return true;
         }
@@ -189,16 +232,40 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private boolean hasFreeSethomePermission(Player player) {
         return player.hasPermission("LiteTeleport.free.sethome");
     }
+    
+    private void teleport(Player pLayer, Location location) {
+        if (Config.tpCooldown > 0) {
+            cdList.put(pLayer.getUniqueId(), System.currentTimeMillis());
+        }
+        pLayer.teleport(location);
+    }
+
+    private int getCooldown(Player player) {
+        if (Config.tpCooldown > 0 && !player.hasPermission("LiteTeleport.cooldown.bypass")) {
+            Long time = cdList.getOrDefault(player.getUniqueId(), 0L);
+            return Config.tpCooldown - (int) ((System.currentTimeMillis() - time) / 1000);
+        }
+        return 0;
+    }
+
+    private boolean isCooling(Player player) {
+        int cd = getCooldown(player);
+        if (cd > 0) {
+            player.sendMessage("§4传送冷却: §c" + cd + "§4秒。");
+            return true;
+        }
+        return false;
+    }
 
     private void commandBack(Player player) {
-        Location backLoc = backList.get(player);
+        Location backLoc = backList.get(player.getUniqueId());
         if (backLoc == null) {
             player.sendMessage("§c错误: §6没有上一位置可以回去。");
             return;
         }
-        if (teleportConsume(player, Config.backConsume)) {
+        if (!isCooling(player) && teleportConsume(player, Config.backConsume)) {
             player.sendMessage("§6正在回到上一位置...");
-            player.teleport(backLoc);
+            teleport(player, backLoc);
         }
     }
 
@@ -254,9 +321,9 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             homeName = args[0];
         }
         if (HomeInfo.exist(playerName, homeName)) {
-            if (teleportConsume(player, Config.homeConsume)) {
+            if (!isCooling(player) && teleportConsume(player, Config.homeConsume)) {
                 player.sendMessage("§6传送到§c" + homeName + "§6。");
-                player.teleport(HomeInfo.getHomeLocation(playerName, homeName));
+                teleport(player, HomeInfo.getHomeLocation(playerName, homeName));
             }
         } else {
             player.sendMessage(HomeInfo.showHomeList(playerName));
@@ -277,7 +344,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             player.sendMessage("§c错误: §4无效的家名称!");
             return;
         }
-        if (Config.sethomeConsume != 0 && !hasFreeSethomePermission(player)) {
+        if (Config.sethomeConsume > 0.0 && !hasFreeSethomePermission(player)) {
             List<String> homeList = HomeInfo.getHomeList(playerName);
             int n;
             if (homeList == null) {
@@ -288,14 +355,15 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             } else {
                 n = homeList.size() + 1;
             }
-            int consume;
+            ConsumeInfo consume;
             if (n == 1) {
                 consume = Config.firstSethomeConsume;
             } else {
-                consume = (int) Math.pow(n, Config.sethomeConsume);
-                if (Config.sethomeMaxConsume != 0 && consume > Config.sethomeMaxConsume) {
-                    consume = Config.sethomeMaxConsume;
+                int amount = (int) Math.pow(n, Config.sethomeConsume);
+                if (Config.sethomeMaxConsume > 0 && amount > Config.sethomeMaxConsume) {
+                    amount = Config.sethomeMaxConsume;
                 }
+                consume = new ConsumeInfo(Config.sethomeConsumeType, amount);
             }
             if (!consume(player, consume, "§c设置你的第§9" + n + "§c个家将花费§a" + consume + "§c级经验。", "§c错误: §4你没有足够的等级支付本次设置花费。")) {
                 return;
@@ -328,11 +396,11 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     }
 
     private void commandSpawn(Player player) {
-        if (teleportConsume(player, Config.spawnConsume)) {
+        if (!isCooling(player) && teleportConsume(player, Config.spawnConsume)) {
             player.sendMessage("§6正在传送...");
             Location loc = SpawnInfo.getSpawnLocation();
             //noinspection ConstantConditions
-            player.teleport(loc == null ? getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation() : loc);
+            teleport(player, loc == null ? getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation() : loc);
         }
     }
 
@@ -347,58 +415,60 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             player.sendMessage("§c错误: §4未找到该玩家。");
             return;
         }
-        tpList.put(target, new TeleportRequest(player));
+        tpList.put(target.getUniqueId(), new TeleportRequest(player));
         target.sendMessage("§c" + player.getDisplayName() + "§6请求传送到你这里。");
         sendRequestMsg(player, target);
     }
 
     private void commandTpacancel(Player player) {
         Player target = null;
-        for (Map.Entry<Player, TeleportRequest> entry : tpList.entrySet()) {
-            if (entry.getValue().source == player) {
-                target = entry.getKey();
+        for (Map.Entry<UUID, TeleportRequest> entry : tpList.entrySet()) {
+            if (entry.getValue().source == player.getUniqueId()) {
+                target = getServer().getPlayer(entry.getKey());
                 break;
             }
         }
         if (target == null) {
             player.sendMessage("§c错误: §4你没有待处理的请求。");
         } else {
-            tpList.remove(target);
+            tpList.remove(target.getUniqueId());
             player.sendMessage("§6传送请求已被取消。");
         }
     }
 
     private void commandTpaccept(Player player) {
         TeleportRequest tpRequest;
-        tpRequest = tpList.remove(player);
+        tpRequest = tpList.remove(player.getUniqueId());
         if (tpRequest == null) {
             player.sendMessage("§c错误: §4你没有待处理的请求。");
             return;
-        }
-        if (player.getLevel() < Config.tpAcceptConsume && !hasFreePermission(player)) {
-            player.sendMessage("§c错误: §4你没有足够的等级来接受此请求。");
-            tpRequest.source.sendMessage("§c错误: §4对方没有足够的等级来接受此请求。");
+        } else if (isCooling(player)) {
             return;
-        } else if (tpRequest.source.getLevel() < Config.tpSourceConsume && !hasFreePermission(tpRequest.source)) {
+        }
+        if (!Config.tpAcceptConsume.has(player) && !hasFreePermission(player)) {
+            player.sendMessage("§c错误: §4你没有足够的等级来接受此请求。");
+            tpRequest.getSource().sendMessage("§c错误: §4对方没有足够的等级来接受此请求。");
+            return;
+        } else if (!Config.tpSourceConsume.has(tpRequest.getSource()) && !hasFreePermission(tpRequest.getSource())) {
             player.sendMessage("§c错误: §4对方没有足够的等级支付本次传送花费。");
-            tpRequest.source.sendMessage("§c错误: §4你没有足够的等级支付本次传送花费。");
+            tpRequest.getSource().sendMessage("§c错误: §4你没有足够的等级支付本次传送花费。");
             return;
         } else {
-            if (Config.tpAcceptConsume != 0 && !hasFreePermission(player)) {
-                player.setLevel(player.getLevel() - Config.tpAcceptConsume);
+            if (Config.tpAcceptConsume.getAmount() != 0 && !hasFreePermission(player)) {
+                Config.tpAcceptConsume.take(player);
             }
-            if (Config.tpSourceConsume != 0 && !hasFreePermission(tpRequest.source)) {
-                tpRequest.source.setLevel(tpRequest.source.getLevel() - Config.tpSourceConsume);
+            if (Config.tpSourceConsume.getAmount() != 0 && !hasFreePermission(tpRequest.getSource())) {
+                Config.tpSourceConsume.take(tpRequest.getSource());
             }
         }
-        tpRequest.source.sendMessage("§c" + player.getDisplayName() + "§6接受了你的传送请求。");
+        tpRequest.getSource().sendMessage("§c" + player.getDisplayName() + "§6接受了你的传送请求。");
         if (tpRequest.teleportType == 0) { //发起者传送到接受者
             player.sendMessage("§6已接受传送请求。");
-            tpRequest.source.sendMessage("§6正在传送至§c" + player.getDisplayName() + "§6。");
-            tpRequest.source.teleport(player.getLocation());
+            tpRequest.getSource().sendMessage("§6正在传送至§c" + player.getDisplayName() + "§6。");
+            teleport(tpRequest.getSource(), player.getLocation());
         } else { //接受者传送到发起者
             player.sendMessage("§6正在传送...");
-            player.teleport(tpRequest.location);
+            teleport(player, tpRequest.location);
         }
     }
 
@@ -413,7 +483,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             player.sendMessage("§c错误: §4未找到该玩家。");
             return;
         }
-        tpList.put(target, new TeleportRequest(1, player, player.getLocation()));
+        tpList.put(target.getUniqueId(), new TeleportRequest(1, player, player.getLocation()));
         target.sendMessage("§c" + player.getDisplayName() + "§6请求你传送到他那里。");
         sendRequestMsg(player, target);
     }
@@ -433,11 +503,11 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     private void commandTpdeny(Player player) {
         TeleportRequest tpRequest;
-        tpRequest = tpList.remove(player);
+        tpRequest = tpList.remove(player.getUniqueId());
         if (tpRequest == null) {
             player.sendMessage("§c错误: §4你没有待处理的请求。");
         } else {
-            tpRequest.source.sendMessage("§c" + player.getDisplayName() + "§6拒绝了你的传送请求。");
+            tpRequest.getSource().sendMessage("§c" + player.getDisplayName() + "§6拒绝了你的传送请求。");
             player.sendMessage("§6已拒绝传送请求。");
         }
     }
@@ -447,20 +517,26 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         if (!Config.allowTprWorld.contains(player.getWorld().getName())) {
             player.sendMessage("§c错误: §4你所在的世界不允许使用随机传送。");
             return;
+        } else if (isCooling(player)) {
+            return;
         }
-        int consume = 0, n = TprInfo.getTprCount(playerName) + 1;
-        if (Config.tprConsume != 0 && !hasFreeTprPermission(player)) {
+        int n = TprInfo.getTprCount(playerName) + 1;
+        ConsumeInfo consume;
+        if (Config.tprConsume > 0.0 && !hasFreeTprPermission(player)) {
             if (n == 1) {
                 consume = Config.firstTprConsume;
             } else {
-                consume = (int) Math.pow(n, Config.tprConsume);
-                if (Config.tprMaxConsume != 0 && consume > Config.tprMaxConsume) {
-                    consume = Config.tprMaxConsume;
+                int amount = (int) Math.pow(n, Config.tprConsume);
+                if (Config.tprMaxConsume > 0 && amount > Config.tprMaxConsume) {
+                    amount = Config.tprMaxConsume;
                 }
+                consume = new ConsumeInfo(Config.tprConsumeType, amount);
             }
             if (!consume(player, consume, "§c第§3" + n + "§c次随机传送将花费§a" + consume + "§c级经验。", "§c错误: §4你没有足够的等级支付本次传送花费。")) {
                 return;
             }
+        } else {
+            consume = null;
         }
         Location loc;
         if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
@@ -483,69 +559,48 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         if (loc == null) {
             player.sendMessage("§c错误: §4未找到安全位置，请重试。");
-            if (Config.tprConsume != 0) {
-                player.setLevel(player.getLevel() + consume);
+            if (consume != null) {
+                consume.give(player);
             }
             return;
         }
         TprInfo.setTprCount(playerName, n);
         player.sendMessage("§6正在传送...");
-        player.teleport(loc);
+        teleport(player, loc);
     }
 
     private void commandWarp(String[] args, Player player) {
         if (args.length > 1) {
-            player.sendMessage("§c错误: 请使用§6/warp [传送点名称]");
+            player.sendMessage("§c错误: 请使用§6/warp <传送点名称>");
             return;
         } else if (args.length == 0) {
             player.sendMessage(WarpInfo.showWarpList());
             return;
         }
         if (WarpInfo.exist(args[0])) {
-            if (teleportConsume(player, Config.warpConsume)) {
+            if (!isCooling(player) && teleportConsume(player, Config.warpConsume)) {
                 player.sendMessage("§6传送到§c" + args[0] + "§6。");
-                player.teleport(WarpInfo.getWarpLocation(args[0]));
+                teleport(player, WarpInfo.getWarpLocation(args[0]));
             }
         } else {
             player.sendMessage("§c错误: §4该传送点不存在。");
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void playerTeleportEvent(PlayerTeleportEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN || event.getCause() == PlayerTeleportEvent.TeleportCause.COMMAND) {
-            backList.put(event.getPlayer(), event.getFrom());
+            backList.put(event.getPlayer().getUniqueId(), event.getFrom());
         }
     }
 
     @EventHandler
     public void playerDeathEvent(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        backList.put(player, player.getLocation());
+        backList.put(player.getUniqueId(), player.getLocation());
         player.sendMessage("§6使用§c/back§6命令回到死亡地点。");
-        /*// 在没有其他插件干预的情况下 下面各项结果: 
-        System.out.println("getKeepInventory: " + event.getKeepInventory()); //doKeepInventory=true时 此值为true
-        System.out.println("getKeepLevel: " + event.getKeepLevel()); //doKeepInventory=true时 此值在1.13.2中为false 在1.17.1中为true
-        System.out.println("getNewLevel: " + event.getNewLevel()); //无论doKeepInventory是否为true 此值都是0
-        System.out.println("getNewExp: " + event.getNewExp()); //无论doKeepInventory是否为true 此值都是0
-        System.out.println("getNewTotalExp: " + event.getNewTotalExp()); //无论doKeepInventory是否为true 此值都是0
-        System.out.println("getDroppedExp: " + event.getDroppedExp()); //无论doKeepInventory是否为true 此值都是应该掉落的经验值 最高为100*/
         if (Config.deathGiveExp != 0) {
             event.setNewLevel(Config.deathGiveExp); //在1.17.1中实测doKeepInventory=true时 此设置无效
-        }
-    }
-
-    @EventHandler
-    public void playerJoinEvent(PlayerJoinEvent event) {
-        for (Map.Entry<Player, Location> ele : backList.entrySet()) {
-            if (ele.getKey().getName().equals(event.getPlayer().getName())) {
-                backList.remove(ele.getKey());
-                backList.put(event.getPlayer(), ele.getValue());
-                return;
-            }
         }
     }
 }
