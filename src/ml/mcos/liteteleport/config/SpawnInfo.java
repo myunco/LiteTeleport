@@ -16,7 +16,7 @@ public class SpawnInfo {
         if (!spawn.exists()) {
             try {
                 if (!spawn.createNewFile()) {
-                    plugin.getServer().getLogger().warning("错误: 创建spawn.yml失败！");
+                    plugin.sendMessage(Language.spawnInfoCreateFailure);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

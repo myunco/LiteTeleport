@@ -19,7 +19,7 @@ public class WarpInfo {
         if (!warps.exists()) {
             try {
                 if (!warps.createNewFile()) {
-                    plugin.getServer().getLogger().warning("错误: 创建warps.yml失败！");
+                    plugin.sendMessage(Language.warpInfoCreateFailure);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -55,11 +55,11 @@ public class WarpInfo {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> warpList = getWarpList();
         if (warpList.size() == 0) {
-            return "§c错误：§6没有已定义的传送点。";
+            return Language.warpListEmpty;
         }
         for (int i = 0; i < warpList.size(); i++) {
             if (i == 0) {
-                stringBuilder.append("§6传送点：§f").append(warpList.get(i));
+                stringBuilder.append(Language.warpList).append(warpList.get(i));
                 continue;
             }
             stringBuilder.append(", ").append(warpList.get(i));

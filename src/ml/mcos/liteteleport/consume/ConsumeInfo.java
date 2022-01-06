@@ -1,6 +1,7 @@
 package ml.mcos.liteteleport.consume;
 
 import ml.mcos.liteteleport.LiteTeleport;
+import ml.mcos.liteteleport.config.Language;
 import org.bukkit.entity.Player;
 
 public class ConsumeInfo {
@@ -23,12 +24,16 @@ public class ConsumeInfo {
         return amount;
     }
 
+    public ConsumeType getType() {
+        return type;
+    }
+
     public boolean has(Player player) {
         switch (type) {
             case ECONOMY:
-                return LiteTeleport.economy.has(player, amount);
+                return LiteTeleport.economy != null && LiteTeleport.economy.has(player, amount);
             case POINTS:
-                return LiteTeleport.pointsAPI.look(player.getUniqueId()) >= amount;
+                return LiteTeleport.pointsAPI != null && LiteTeleport.pointsAPI.look(player.getUniqueId()) >= amount;
             default:
                 return player.getLevel() >= amount;
         }
@@ -37,9 +42,9 @@ public class ConsumeInfo {
     public boolean take(Player player) {
         switch (type) {
             case ECONOMY:
-                return LiteTeleport.economy.withdrawPlayer(player, amount).transactionSuccess();
+                return LiteTeleport.economy != null && LiteTeleport.economy.withdrawPlayer(player, amount).transactionSuccess();
             case POINTS:
-                return LiteTeleport.pointsAPI.take(player.getUniqueId(), amount);
+                return LiteTeleport.pointsAPI != null && LiteTeleport.pointsAPI.take(player.getUniqueId(), amount);
             default:
                 player.setLevel(player.getLevel() - amount);
                 return true;
@@ -49,13 +54,39 @@ public class ConsumeInfo {
     public void give(Player player) {
         switch (type) {
             case ECONOMY:
-                LiteTeleport.economy.depositPlayer(player, amount);
+                if (LiteTeleport.economy != null) {
+                    LiteTeleport.economy.depositPlayer(player, amount);
+                }
                 break;
             case POINTS:
-                LiteTeleport.pointsAPI.give(player.getUniqueId(), amount);
+                if (LiteTeleport.pointsAPI != null) {
+                    LiteTeleport.pointsAPI.give(player.getUniqueId(), amount);
+                }
                 break;
             default:
                 player.setLevel(player.getLevel() + amount);
+        }
+    }
+
+    public String getDescription() {
+        switch (type) {
+            case ECONOMY:
+                return Language.replaceArgs(Language.consumeInfoDescriptionEconomy, amount);
+            case POINTS:
+                return Language.replaceArgs(Language.consumeInfoDescriptionPoints, amount);
+            default:
+                return Language.replaceArgs(Language.consumeInfoDescriptionLevel, amount);
+        }
+    }
+
+    public String getConsumeName() {
+        switch (type) {
+            case ECONOMY:
+                return Language.consumeInfoNameEconomy;
+            case POINTS:
+                return Language.consumeInfoNamePoints;
+            default:
+                return Language.consumeInfoNameLevel;
         }
     }
 

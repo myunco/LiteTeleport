@@ -19,7 +19,7 @@ public class HomeInfo {
         if (!homes.exists()) {
             try {
                 if (!homes.createNewFile()) {
-                    plugin.getServer().getLogger().warning("错误: 创建homes.yml失败！");
+                    plugin.sendMessage(Language.homeInfoCreateFailure);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -55,11 +55,11 @@ public class HomeInfo {
         StringBuilder builder = new StringBuilder();
         List<String> homeList = getHomeList(player);
         if (homeList == null) {
-            return "§6你还没有设置过家。";
+            return Language.homeListEmpty;
         }
         for (int i = 0; i < homeList.size(); i++) {
             if (i == 0) {
-                builder.append("§6家：§f").append(homeList.get(i));
+                builder.append(Language.homeList).append(homeList.get(i));
                 continue;
             }
             builder.append(", ").append(homeList.get(i));

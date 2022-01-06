@@ -18,6 +18,7 @@ import java.util.List;
 
 public class Config {
     public static LiteTeleport plugin = LiteTeleport.plugin;
+    public static String language;
     public static boolean checkUpdate;
     public static int tpCooldown;
     public static ConsumeInfo spawnConsume;
@@ -46,6 +47,7 @@ public class Config {
     public static void loadConfig() {
         plugin.saveDefaultConfig();
         YamlConfiguration config = loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
+        language = config.getString("language", "zh_cn");
         checkUpdate = config.getBoolean("checkUpdate", true);
         tpCooldown = config.getInt("tpCooldown");
         spawnConsume = getConsumeInfo(config, "spawnConsume");
@@ -101,7 +103,7 @@ public class Config {
         int amount = 0;
         if (consume != null) {
             if (!consume.matches("[0-9]+[GgPpLl]?")) {
-                plugin.getLogger().warning("无效的花费，请检查格式是否正确：" + path + ": " + consume);
+                plugin.sendMessage(Language.consumeInvalid + path + ": " + consume);
             } else {
                 type = ConsumeInfo.getConsumeType(consume);
                 amount = ConsumeInfo.getConsumeAmount(consume);
@@ -119,7 +121,7 @@ public class Config {
                 consume = consume + ".0";
             }
             if (!consume.matches("[0-9]+\\.[0-9]+[GgPpLl]?")) {
-                plugin.getLogger().warning("无效的花费，请检查格式是否正确：" + path + ": " + consume);
+                plugin.sendMessage(Language.consumeInvalid + path + ": " + consume);
             }
             return ConsumeInfo.getConsumeAmountDouble(consume);
         }

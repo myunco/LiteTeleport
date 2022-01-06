@@ -15,7 +15,7 @@ public class TprInfo {
         if (!tpr.exists()) {
             try {
                 if (!tpr.createNewFile()) {
-                    plugin.getServer().getLogger().warning("错误: 创建tpr.yml失败！");
+                    plugin.sendMessage(Language.tprInfoCreateFailure);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

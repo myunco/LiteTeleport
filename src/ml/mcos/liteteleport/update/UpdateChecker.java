@@ -1,6 +1,7 @@
 package ml.mcos.liteteleport.update;
 
 import ml.mcos.liteteleport.LiteTeleport;
+import ml.mcos.liteteleport.config.Language;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,17 +26,15 @@ public class UpdateChecker {
                     CheckResult result = checkVersionUpdate("https://myunco.sinacloud.net/C8A05E18/version.txt");
                     if (result.getResultType() == CheckResult.ResultType.SUCCESS) {
                         if (result.hasNewVersion()) {
-                            String str = "§c发现新版本可用! §b当前版本: {current} §d最新版本: {latest}"
-                                    .replace("{current}", currentVersion)
-                                    .replace("{latest}", result.getLatestVersion());
-                            plugin.getLogger().info(result.hasMajorUpdate() ? "§e(有大更新)" + str : str);
-                            plugin.getLogger().info("§a下载地址: " + "https://www.mcbbs.net/thread-1268795-1-1.html");
+                            String str = Language.replaceArgs(Language.updateFoundNewVersion, currentVersion, result.getLatestVersion());
+                            plugin.sendMessage(result.hasMajorUpdate() ? Language.updateMajorUpdate + str : str);
+                            plugin.sendMessage(Language.updateDownloadLink + "https://www.mcbbs.net/thread-1268795-1-1.html");
                         }
                     } else {
-                        plugin.getLogger().info("§e检查更新失败, 状态码: " + result.getResponseCode());
+                        plugin.sendMessage(Language.updateCheckFailure + result.getResponseCode());
                     }
                 } catch (IOException e) {
-                    plugin.getLogger().severe("§4检查更新时发生IO异常.");
+                    plugin.sendMessage(Language.updateCheckException);
                     e.printStackTrace();
                 }
             }

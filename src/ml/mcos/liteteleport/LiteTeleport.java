@@ -2,6 +2,7 @@ package ml.mcos.liteteleport;
 
 import ml.mcos.liteteleport.config.Config;
 import ml.mcos.liteteleport.config.HomeInfo;
+import ml.mcos.liteteleport.config.Language;
 import ml.mcos.liteteleport.config.SpawnInfo;
 import ml.mcos.liteteleport.config.TprInfo;
 import ml.mcos.liteteleport.config.WarpInfo;
@@ -17,13 +18,13 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -34,9 +35,11 @@ import java.util.UUID;
 
 public class LiteTeleport extends JavaPlugin implements Listener {
     public static LiteTeleport plugin;
-    public HashMap<UUID, TeleportRequest> tpList = new HashMap<>();
-    public HashMap<UUID, Location> backList = new HashMap<>();
-    public HashMap<UUID, Long> cdList = new HashMap<>();
+    public ConsoleCommandSender consoleSender = getServer().getConsoleSender();
+    private final HashMap<UUID, TeleportRequest> tpList = new HashMap<>();
+    private final HashMap<UUID, Location> backList = new HashMap<>();
+    private final HashMap<UUID, Long> cdList = new HashMap<>();
+    public ClassLoader classLoader = getClassLoader();
     public static int mcVersion;
     public static int mcVersionPatch;
     public static Economy economy;
@@ -47,12 +50,6 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         plugin = this;
         mcVersion = getMinecraftVersion();
         initConfig();
-        if (Config.useEconomy) {
-            setupEconomy();
-        }
-        if (Config.usePoints) {
-            setupPointsAPI();
-        }
         getServer().getPluginManager().registerEvents(this, this);
         new Metrics(this, 12936);
     }
@@ -64,39 +61,44 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     public void initConfig() {
         Config.loadConfig();
+        Language.loadLanguage(Config.language);
+        if (Config.checkUpdate) {
+            UpdateChecker.start();
+        }
+        if (Config.useEconomy && economy == null) {
+            setupEconomy();
+        }
+        if (Config.usePoints && pointsAPI == null) {
+            setupPointsAPI();
+        }
         HomeInfo.loadHomeInfo();
         SpawnInfo.loadSpawnInfo();
         TprInfo.loadTprInfo();
         WarpInfo.loadWarpInfo();
-        if (Config.checkUpdate) {
-            UpdateChecker.start();
-        }
     }
 
     public void setupEconomy() {
         if (!getServer().getPluginManager().isPluginEnabled("Vault")) {
-            getLogger().severe("未找到Vault，请检查是否正确安装Vault插件！");
+            sendMessage(Language.economyNotFoundVault);
             return;
         }
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) {
-            getLogger().severe("未找到经济系统，请检查是否正确安装经济提供插件！(如Essentials、CMI、Economy等)");
+            sendMessage(Language.economyNotFoundEconomy);
             return;
         }
         economy = rsp.getProvider();
+        sendMessage("Using economy system: §3" + economy.getName());
     }
 
     public void setupPointsAPI() {
-        Plugin playerPoints = getServer().getPluginManager().getPlugin("PlayerPoints");
+        PlayerPoints playerPoints = (PlayerPoints) getServer().getPluginManager().getPlugin("PlayerPoints");
         if (playerPoints == null || !playerPoints.isEnabled()) {
-            getLogger().severe("未找到PlayerPoints，请检查是否正确安装点券插件！");
+            sendMessage(Language.pointsNotFound);
             return;
         }
-        pointsAPI = PlayerPoints.getInstance().getAPI();
-        //pointsAPI = ((PlayerPoints) playerPoints).getAPI();
-        if (pointsAPI == null) {
-            getLogger().severe("未能获取PlayerPointsAPI，可能是版本太旧，请尝试更新点券插件！");
-        }
+        pointsAPI = playerPoints.getAPI();
+        sendMessage("Found PlayerPoints: §3v" + playerPoints.getDescription().getVersion());
     }
 
     private int getMinecraftVersion() {
@@ -108,18 +110,22 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         return Integer.parseInt(version[1]);
     }
 
+    public void sendMessage(String msg) {
+        consoleSender.sendMessage(Language.logPrefix + msg);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equals("LiteTeleport")) {
             if (args.length == 1) {
                 switch (args[0].toLowerCase()) {
                     case "version":
-                        sender.sendMessage("§a当前版本: §b" + getDescription().getVersion());
+                        sender.sendMessage(Language.messagePrefix + Language.commandVersion + getDescription().getVersion());
                         return true;
                     case "reload":
                         UpdateChecker.stop();
                         initConfig();
-                        sender.sendMessage("§a配置文件重载完成。");
+                        sender.sendMessage(Language.messagePrefix + Language.commandReload);
                         return true;
                 }
             }
@@ -218,7 +224,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         if (hasFreePermission(player)) {
             return true;
         }
-        return consume(player, consume, "§c本次传送将花费§a" + consume + "§c级经验。", "§c错误: §4你没有足够的等级支付本次传送花费。");
+        return consume(player, consume, Language.replaceArgs(Language.teleportConsume, consume.getDescription()), Language.replaceArgs(Language.teleportConsumeNotEnough, consume.getConsumeName()));
     }
 
     private boolean hasFreePermission(Player player) {
@@ -251,7 +257,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private boolean isCooling(Player player) {
         int cd = getCooldown(player);
         if (cd > 0) {
-            player.sendMessage("§4传送冷却: §c" + cd + "§4秒。");
+            player.sendMessage(Language.replaceArgs(Language.teleportCooldown, cd));
             return true;
         }
         return false;
@@ -260,11 +266,11 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private void commandBack(Player player) {
         Location backLoc = backList.get(player.getUniqueId());
         if (backLoc == null) {
-            player.sendMessage("§c错误: §6没有上一位置可以回去。");
+            player.sendMessage(Language.commandBackNotBack);
             return;
         }
         if (!isCooling(player) && teleportConsume(player, Config.backConsume)) {
-            player.sendMessage("§6正在回到上一位置...");
+            player.sendMessage(Language.commandBack);
             teleport(player, backLoc);
         }
     }
@@ -272,44 +278,43 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private void commandDelhome(String[] args, Player player) {
         String playerName = player.getName(), homeName;
         if (args.length != 1) {
-            player.sendMessage("§c错误: 请使用§6/delhome <家名称>");
+            player.sendMessage(Language.commandDelhomeUsage);
             return;
         } else {
             homeName = args[0];
         }
         if (HomeInfo.isBanName(homeName)) {
-            player.sendMessage("§c错误: §4无效的家名称!");
+            player.sendMessage(Language.homeNameInvalid);
         } else if (HomeInfo.exist(playerName, homeName)) {
             HomeInfo.deleteHome(playerName, homeName);
-            player.sendMessage("§6家§c" + homeName + "§6已被移除。");
+            player.sendMessage(Language.replaceArgs(Language.commandDelhome, homeName));
         } else {
-            player.sendMessage("§c错误: §4家§c" + homeName + "§4不存在!");
-
+            player.sendMessage(Language.replaceArgs(Language.commandDelhomeDontExist, homeName));
         }
     }
 
     private void commandDelwarp(String[] args, Player player) {
         if (args.length != 1) {
-            player.sendMessage("§c错误: 请使用§6/delwarp <传送点名称>");
+            player.sendMessage(Language.commandDelwarpUsage);
         } else if (WarpInfo.isBanName(args[0])) {
-            player.sendMessage("§c错误: §4无效的传送点名称!");
+            player.sendMessage(Language.warpNameInvalid);
         } else if (WarpInfo.exist(args[0])) {
             WarpInfo.deleteWarp(args[0]);
-            player.sendMessage("§6传送点§c" + args[0] + "§6已被移除。");
+            player.sendMessage(Language.replaceArgs(Language.commandDelwarp, args[0]));
         } else {
-            player.sendMessage("§c错误: §4该传送点不存在。");
+            player.sendMessage(Language.warpDontExist);
         }
     }
 
     private void commandHome(String[] args, Player player) {
         String playerName = player.getName(), homeName;
         if (args.length > 1) {
-            player.sendMessage("§c错误: 请使用§6/home [家名称]");
+            player.sendMessage(Language.commandHomeUsage);
             return;
         } else if (args.length == 0) {
             List<String> homeList = HomeInfo.getHomeList(playerName);
             if (homeList == null) {
-                player.sendMessage("§6你还没有设置过家。");
+                player.sendMessage(Language.homeListEmpty);
                 return;
             } else if (homeList.size() == 1) {
                 homeName = homeList.get(0);
@@ -322,7 +327,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         if (HomeInfo.exist(playerName, homeName)) {
             if (!isCooling(player) && teleportConsume(player, Config.homeConsume)) {
-                player.sendMessage("§6传送到§c" + homeName + "§6。");
+                player.sendMessage(Language.replaceArgs(Language.commandHome, homeName));
                 teleport(player, HomeInfo.getHomeLocation(playerName, homeName));
             }
         } else {
@@ -333,7 +338,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private void commandSethome(String[] args, Player player) {
         String playerName = player.getName(), homeName;
         if (args.length > 1) {
-            player.sendMessage("§c错误: 请使用§6/sethome [家名称]");
+            player.sendMessage(Language.commandSethomeUsage);
             return;
         } else if (args.length == 0) {
             homeName = "home";
@@ -341,7 +346,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             homeName = args[0];
         }
         if (HomeInfo.isBanName(homeName)) {
-            player.sendMessage("§c错误: §4无效的家名称!");
+            player.sendMessage(Language.homeNameInvalid);
             return;
         }
         if (Config.sethomeConsume > 0.0 && !hasFreeSethomePermission(player)) {
@@ -351,7 +356,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 n = 1;
             } else if (homeList.contains(homeName)) {
                 n = homeList.indexOf(homeName) + 1;
-                player.sendMessage("§6家§c" + homeName + "§6已存在，将被重设为当前位置。");
+                player.sendMessage(Language.replaceArgs(Language.commandSethomeAlreadyExists, homeName));
             } else {
                 n = homeList.size() + 1;
             }
@@ -365,12 +370,12 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 }
                 consume = new ConsumeInfo(Config.sethomeConsumeType, amount);
             }
-            if (!consume(player, consume, "§c设置你的第§9" + n + "§c个家将花费§a" + consume + "§c级经验。", "§c错误: §4你没有足够的等级支付本次设置花费。")) {
+            if (!consume(player, consume, Language.replaceArgs(Language.commandSethomeConsume, n, consume.getDescription()), Language.replaceArgs(Language.commandSethomeConsumeNotEnough, consume.getConsumeName()))) {
                 return;
             }
         }
         HomeInfo.setHome(playerName, homeName, player.getLocation());
-        player.sendMessage("§6已设置家。");
+        player.sendMessage(Language.commandSethome);
     }
 
     private void commandSetspawn(Player player) {
@@ -381,23 +386,23 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             player.getWorld().setSpawnLocation(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         }
         SpawnInfo.setSpawn(loc);
-        player.sendMessage("§6已将世界出生点设为当前位置。");
+        player.sendMessage(Language.commandSetspawn);
     }
 
     private void commandSetwarp(String[] args, Player player) {
         if (args.length != 1) {
-            player.sendMessage("§c错误: 请使用§6/setwarp <传送点名称>");
+            player.sendMessage(Language.commandSetwarpUsage);
         } else if (WarpInfo.isBanName(args[0])) {
-            player.sendMessage("§c错误: §4无效的传送点名称!");
+            player.sendMessage(Language.warpNameInvalid);
         } else {
             WarpInfo.setWarpLocation(args[0], player.getLocation());
-            player.sendMessage("§6已设置传送点§c" + args[0] + "§6。");
+            player.sendMessage(Language.replaceArgs(Language.commandSetwarp, args[0]));
         }
     }
 
     private void commandSpawn(Player player) {
         if (!isCooling(player) && teleportConsume(player, Config.spawnConsume)) {
-            player.sendMessage("§6正在传送...");
+            player.sendMessage(Language.teleport);
             Location loc = SpawnInfo.getSpawnLocation();
             //noinspection ConstantConditions
             teleport(player, loc == null ? getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation() : loc);
@@ -407,16 +412,16 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private void commandTpa(String[] args, Player player) {
         Player target;
         if (args.length != 1 || player.getName().equals(args[0])) {
-            player.sendMessage("§c错误: 请使用§6/tpa <玩家>");
+            player.sendMessage(Language.commandTpaUsage);
             return;
         }
         target = getServer().getPlayer(args[0]);
         if (target == null) {
-            player.sendMessage("§c错误: §4未找到该玩家。");
+            player.sendMessage(Language.playerNotFound);
             return;
         }
         tpList.put(target.getUniqueId(), new TeleportRequest(player));
-        target.sendMessage("§c" + player.getDisplayName() + "§6请求传送到你这里。");
+        target.sendMessage(Language.replaceArgs(Language.commandTpaTarget, player.getDisplayName()));
         sendRequestMsg(player, target);
     }
 
@@ -429,10 +434,10 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             }
         }
         if (target == null) {
-            player.sendMessage("§c错误: §4你没有待处理的请求。");
+            player.sendMessage(Language.teleportRequestDontExist);
         } else {
             tpList.remove(target.getUniqueId());
-            player.sendMessage("§6传送请求已被取消。");
+            player.sendMessage(Language.commandTpacancel);
         }
     }
 
@@ -440,18 +445,18 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         TeleportRequest tpRequest;
         tpRequest = tpList.remove(player.getUniqueId());
         if (tpRequest == null) {
-            player.sendMessage("§c错误: §4你没有待处理的请求。");
+            player.sendMessage(Language.teleportRequestDontExist);
             return;
         } else if (isCooling(player)) {
             return;
         }
         if (!Config.tpAcceptConsume.has(player) && !hasFreePermission(player)) {
-            player.sendMessage("§c错误: §4你没有足够的等级来接受此请求。");
-            tpRequest.getSource().sendMessage("§c错误: §4对方没有足够的等级来接受此请求。");
+            player.sendMessage(Language.replaceArgs(Language.commandTpacceptTargetConsumeNotEnough, Config.tpAcceptConsume.getConsumeName()));
+            tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptTargetConsumeNotEnoughSource, Config.tpAcceptConsume.getConsumeName()));
             return;
         } else if (!Config.tpSourceConsume.has(tpRequest.getSource()) && !hasFreePermission(tpRequest.getSource())) {
-            player.sendMessage("§c错误: §4对方没有足够的等级支付本次传送花费。");
-            tpRequest.getSource().sendMessage("§c错误: §4你没有足够的等级支付本次传送花费。");
+            player.sendMessage(Language.replaceArgs(Language.commandTpacceptSourceConsumeNotEnough, Config.tpSourceConsume.getConsumeName()));
+            tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptSourceConsumeNotEnoughSource, Config.tpSourceConsume.getConsumeName()));
             return;
         } else {
             if (Config.tpAcceptConsume.getAmount() != 0 && !hasFreePermission(player)) {
@@ -461,13 +466,13 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 Config.tpSourceConsume.take(tpRequest.getSource());
             }
         }
-        tpRequest.getSource().sendMessage("§c" + player.getDisplayName() + "§6接受了你的传送请求。");
+        tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptSource));
         if (tpRequest.teleportType == 0) { //发起者传送到接受者
-            player.sendMessage("§6已接受传送请求。");
-            tpRequest.getSource().sendMessage("§6正在传送至§c" + player.getDisplayName() + "§6。");
+            player.sendMessage(Language.commandTpaccept);
+            tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptTeleport, player.getDisplayName()));
             teleport(tpRequest.getSource(), player.getLocation());
         } else { //接受者传送到发起者
-            player.sendMessage("§6正在传送...");
+            player.sendMessage(Language.teleport);
             teleport(player, tpRequest.location);
         }
     }
@@ -475,29 +480,29 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     private void commandTpahere(String[] args, Player player) {
         Player target;
         if (args.length != 1 || player.getName().equals(args[0])) {
-            player.sendMessage("§c错误: 请使用§6/tpahere <玩家>");
+            player.sendMessage(Language.commandTpahereUsage);
             return;
         }
         target = getServer().getPlayer(args[0]);
         if (target == null) {
-            player.sendMessage("§c错误: §4未找到该玩家。");
+            player.sendMessage(Language.playerNotFound);
             return;
         }
         tpList.put(target.getUniqueId(), new TeleportRequest(1, player, player.getLocation()));
-        target.sendMessage("§c" + player.getDisplayName() + "§6请求你传送到他那里。");
+        target.sendMessage(Language.replaceArgs(Language.commandTpahereTarget, player.getDisplayName()));
         sendRequestMsg(player, target);
     }
 
     private void sendRequestMsg(Player player, Player target) {
-        target.sendMessage("§6若想接受传送，输入§c/tpaccept");
-        target.sendMessage("§6若想拒绝传送，输入§c/tpdeny");
+        target.sendMessage(Language.teleportRequestTargetAccept);
+        target.sendMessage(Language.teleportRequestTargetDeny);
         if (!hasFreePermission(target)) {
-            target.sendMessage("§c接受此请求将花费§a" + Config.tpAcceptConsume + "§c级经验。");
+            target.sendMessage(Language.replaceArgs(Language.teleportRequestTargetConsume, Config.tpAcceptConsume.getDescription()));
         }
-        player.sendMessage("§6请求已发送给§c" + target.getDisplayName() + "§6。");
-        player.sendMessage("§6若要取消这个请求，请输入§c/tpacancel");
+        player.sendMessage(Language.replaceArgs(Language.teleportRequestSource, target.getDisplayName()));
+        player.sendMessage(Language.teleportRequestSourceCancel);
         if (!hasFreePermission(player)) {
-            player.sendMessage("§c传送时将花费§a" + Config.tpSourceConsume + "§c级经验。");
+            player.sendMessage(Language.replaceArgs(Language.teleportRequestSourceConsume, Config.tpSourceConsume.getDescription()));
         }
     }
 
@@ -505,17 +510,17 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         TeleportRequest tpRequest;
         tpRequest = tpList.remove(player.getUniqueId());
         if (tpRequest == null) {
-            player.sendMessage("§c错误: §4你没有待处理的请求。");
+            player.sendMessage(Language.teleportRequestDontExist);
         } else {
-            tpRequest.getSource().sendMessage("§c" + player.getDisplayName() + "§6拒绝了你的传送请求。");
-            player.sendMessage("§6已拒绝传送请求。");
+            tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpdenySource, player.getDisplayName()));
+            player.sendMessage(Language.commandTpdeny);
         }
     }
 
     private void commandTpr(Player player) {
         String playerName = player.getName();
         if (!Config.allowTprWorld.contains(player.getWorld().getName())) {
-            player.sendMessage("§c错误: §4你所在的世界不允许使用随机传送。");
+            player.sendMessage(Language.commandTprWorldNotAllow);
             return;
         } else if (isCooling(player)) {
             return;
@@ -532,7 +537,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 }
                 consume = new ConsumeInfo(Config.tprConsumeType, amount);
             }
-            if (!consume(player, consume, "§c第§3" + n + "§c次随机传送将花费§a" + consume + "§c级经验。", "§c错误: §4你没有足够的等级支付本次传送花费。")) {
+            if (!consume(player, consume, Language.replaceArgs(Language.commandTprConsume, n, consume.getDescription()), Language.replaceArgs(Language.commandTprConsumeNotEnough, consume.getConsumeName()))) {
                 return;
             }
         } else {
@@ -540,16 +545,16 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         Location loc;
         if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
-            if (mcVersion > 10) { //1.10没有sendTitle 而且1.12及以下版本区块加载比高版本快很多 不需要提示等待
-                player.sendTitle("§a随机传送", "§b传送将在10秒内开始···", 20, 160, 20);
+            if (mcVersion > 10) { //1.10没有sendTitle 而且低版本区块加载比高版本快很多 不需要提示等待
+                player.sendTitle(Language.commandTprTitle, Language.commandTprSubtitle, 20, 160, 20);
             }
             loc = RandomTeleport.getRandomLocByNether(player);
         } else {
             if (mcVersion > 10) { //1.10以及下不需要提示等待
                 if (player.getWorld().getEnvironment() == World.Environment.THE_END) {
-                    player.sendMessage("§3寻找安全位置可能需要花费一些时间，请耐心等待。");
+                    player.sendMessage(Language.commandTprTheEnd);
                 } else {
-                    player.sendTitle("§a随机传送", "§b传送将在10秒内开始···", 20, 160, 20);
+                    player.sendTitle(Language.commandTprTitle, Language.commandTprSubtitle, 20, 160, 20);
                 }
             }
             loc = RandomTeleport.getRandomLoc(player);
@@ -558,20 +563,20 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             player.sendTitle("", "", 0, 0, 0);
         }
         if (loc == null) {
-            player.sendMessage("§c错误: §4未找到安全位置，请重试。");
+            player.sendMessage(Language.commandTprNotFoundSafeLocation);
             if (consume != null) {
                 consume.give(player);
             }
             return;
         }
         TprInfo.setTprCount(playerName, n);
-        player.sendMessage("§6正在传送...");
+        player.sendMessage(Language.teleport);
         teleport(player, loc);
     }
 
     private void commandWarp(String[] args, Player player) {
         if (args.length > 1) {
-            player.sendMessage("§c错误: 请使用§6/warp <传送点名称>");
+            player.sendMessage(Language.commandWarpUsage);
             return;
         } else if (args.length == 0) {
             player.sendMessage(WarpInfo.showWarpList());
@@ -579,11 +584,11 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         if (WarpInfo.exist(args[0])) {
             if (!isCooling(player) && teleportConsume(player, Config.warpConsume)) {
-                player.sendMessage("§6传送到§c" + args[0] + "§6。");
+                player.sendMessage(Language.replaceArgs(Language.commandWarp, args[0]));
                 teleport(player, WarpInfo.getWarpLocation(args[0]));
             }
         } else {
-            player.sendMessage("§c错误: §4该传送点不存在。");
+            player.sendMessage(Language.warpDontExist);
         }
     }
 
@@ -598,9 +603,9 @@ public class LiteTeleport extends JavaPlugin implements Listener {
     public void playerDeathEvent(PlayerDeathEvent event) {
         Player player = event.getEntity();
         backList.put(player.getUniqueId(), player.getLocation());
-        player.sendMessage("§6使用§c/back§6命令回到死亡地点。");
-        if (Config.deathGiveExp != 0) {
-            event.setNewLevel(Config.deathGiveExp); //在1.17.1中实测doKeepInventory=true时 此设置无效
+        player.sendMessage(Language.playerDeathMessage);
+        if (Config.deathGiveExp != 0 && Config.backConsume.getType() == ConsumeInfo.ConsumeType.LEVEL) {
+            event.setNewLevel(Config.deathGiveExp);
         }
     }
 }
