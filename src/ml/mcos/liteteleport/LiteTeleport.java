@@ -466,7 +466,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 Config.tpSourceConsume.take(tpRequest.getSource());
             }
         }
-        tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptSource));
+        tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptSource, player.getDisplayName()));
         if (tpRequest.teleportType == 0) { //发起者传送到接受者
             player.sendMessage(Language.commandTpaccept);
             tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptTeleport, player.getDisplayName()));
