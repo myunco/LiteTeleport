@@ -1,6 +1,6 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.9.1
+version: 1.9.2-SNAPSHOT
 api-version: 1.13
 softdepend:
   - Vault

@@ -111,10 +111,14 @@ public class ConsumeInfo {
             return 0;
         }
         char c = consume.charAt(consume.length() - 1);
-        if (c >= '0' && c <= '9') {
-            return Integer.parseInt(consume);
-        } else {
-            return Integer.parseInt(consume.substring(0, consume.length() - 1));
+        try {
+            if (c >= '0' && c <= '9') {
+                return Integer.parseInt(consume);
+            } else {
+                return Integer.parseInt(consume.substring(0, consume.length() - 1));
+            }
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 
@@ -123,10 +127,14 @@ public class ConsumeInfo {
             return 0.0;
         }
         char c = consume.charAt(consume.length() - 1);
-        if (c >= '0' && c <= '9') {
-            return Double.parseDouble(consume);
-        } else {
-            return Double.parseDouble(consume.substring(0, consume.length() - 1));
+        try {
+            if (c >= '0' && c <= '9') {
+                return Double.parseDouble(consume);
+            } else {
+                return Double.parseDouble(consume.substring(0, consume.length() - 1));
+            }
+        } catch (NumberFormatException | NullPointerException e) {
+            return 0.0;
         }
     }
 }
