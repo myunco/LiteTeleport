@@ -102,6 +102,7 @@ public class Language {
     public static void loadLanguage(String language) {
         if (!language.matches("[a-zA-Z]{2}[_-][a-zA-Z]{2}")) {
             plugin.sendMessage("§4语言文件名称格式错误: " + language);
+            language = "zh_cn";
         }
         String langPath = "lang/" + language + ".yml";
         File lang = new File(plugin.getDataFolder(), langPath);

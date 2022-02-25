@@ -18,27 +18,29 @@ public class UpdateChecker {
     public static Timer timer;
 
     public static void start() {
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    CheckResult result = checkVersionUpdate("https://myunco.sinacloud.net/C8A05E18/version.txt");
-                    if (result.getResultType() == CheckResult.ResultType.SUCCESS) {
-                        if (result.hasNewVersion()) {
-                            String str = Language.replaceArgs(Language.updateFoundNewVersion, currentVersion, result.getLatestVersion());
-                            plugin.sendMessage(result.hasMajorUpdate() ? Language.updateMajorUpdate + str : str);
-                            plugin.sendMessage(Language.updateDownloadLink + "https://www.mcbbs.net/thread-1268795-1-1.html");
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        CheckResult result = checkVersionUpdate("https://myunco.sinacloud.net/C8A05E18/version.txt");
+                        if (result.getResultType() == CheckResult.ResultType.SUCCESS) {
+                            if (result.hasNewVersion()) {
+                                String str = Language.replaceArgs(Language.updateFoundNewVersion, currentVersion, result.getLatestVersion());
+                                plugin.sendMessage(result.hasMajorUpdate() ? Language.updateMajorUpdate + str : str);
+                                plugin.sendMessage(Language.updateDownloadLink + "https://www.mcbbs.net/thread-1268795-1-1.html");
+                            }
+                        } else {
+                            plugin.sendMessage(Language.updateCheckFailure + result.getResponseCode());
                         }
-                    } else {
-                        plugin.sendMessage(Language.updateCheckFailure + result.getResponseCode());
+                    } catch (IOException e) {
+                        plugin.sendMessage(Language.updateCheckException);
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    plugin.sendMessage(Language.updateCheckException);
-                    e.printStackTrace();
                 }
-            }
-        }, 14000, 12 * 60 * 60 * 1000);
+            }, 14000, 12 * 60 * 60 * 1000);
+        });
     }
 
     public static void stop() {
