@@ -48,6 +48,8 @@ public class Config {
         plugin.saveDefaultConfig();
         YamlConfiguration config = loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
         language = config.getString("language", "zh_cn");
+        assert language != null; //免得IDEA警告language可能为null
+        Language.loadLanguage(language);
         checkUpdate = config.getBoolean("checkUpdate", true);
         tpCooldown = config.getInt("tpCooldown");
         spawnConsume = getConsumeInfo(config, "spawnConsume");
@@ -118,7 +120,18 @@ public class Config {
             return 0.0;
         } else {
             if (consume.indexOf('.') == -1) {
-                consume = consume + ".0";
+                int index = 0;
+                for (; index < consume.length(); index++) {
+                    char c = consume.charAt(index);
+                    if (c > '9' || c < '0') {
+                        break;
+                    }
+                }
+                if (index == consume.length()) {
+                    consume = consume + ".0";
+                } else {
+                    consume = consume.replace(consume.substring(index), ".0" + consume.substring(index));
+                }
             }
             if (!consume.matches("[0-9]+\\.[0-9]+[GgPpLl]?")) {
                 plugin.sendMessage(Language.consumeInvalid + path + ": " + consume);

@@ -61,7 +61,6 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     public void initConfig() {
         Config.loadConfig();
-        Language.loadLanguage(Config.language);
         if (Config.checkUpdate) {
             UpdateChecker.start();
         }
