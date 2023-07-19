@@ -115,7 +115,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equals("LiteTeleport")) {
+        if (command.getName().equalsIgnoreCasa("LiteTeleport")) {
             if (args.length == 1) {
                 switch (args[0].toLowerCase()) {
                     case "version":
@@ -132,7 +132,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            switch (command.getName()) {
+            switch (command.getName().toLowerCase()) {
                 case "home":
                     commandHome(args, player);
                     break;
