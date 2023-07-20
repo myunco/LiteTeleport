@@ -115,7 +115,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCasa("LiteTeleport")) {
+        if (command.getName().equals("LiteTeleport")) {
             if (args.length == 1) {
                 switch (args[0].toLowerCase()) {
                     case "version":
