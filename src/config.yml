@@ -44,6 +44,9 @@ sethomeConsume: 3.14L
 #当上面的公式产生的结果超出上限值时 超出的部分会被抹去
 sethomeMaxConsume: 0
 
+#设置家的数量上限 0表示无上限
+maxOfHomes: 0
+
 #使用/home命令的花费
 homeConsume: 0L
 

@@ -30,6 +30,7 @@ public class Config {
     public static double sethomeConsume;
     public static ConsumeInfo.ConsumeType sethomeConsumeType;
     public static int sethomeMaxConsume;
+    public static int maxOfHomes;
     public static ConsumeInfo homeConsume;
     public static ConsumeInfo warpConsume;
     public static ConsumeInfo firstTprConsume;
@@ -60,6 +61,7 @@ public class Config {
         firstSethomeConsume = getConsumeInfo(config, "firstSethomeConsume");
         sethomeConsume = getSethomeConsume(config);
         sethomeMaxConsume = config.getInt("sethomeMaxConsume");
+        maxOfHomes = config.getInt("maxOfHomes");
         homeConsume = getConsumeInfo(config, "homeConsume");
         warpConsume = getConsumeInfo(config, "warpConsume");
         firstTprConsume = getConsumeInfo(config, "firstTprConsume");

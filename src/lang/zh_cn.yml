@@ -1,5 +1,5 @@
 #语言文件版本 请勿修改此项
-version: 1
+version: 2
 
 log-prefix: '[LiteTeleport] '
 message-prefix: '§3[§6LiteTeleport§3] '
@@ -17,7 +17,9 @@ update-check-failure: '§e检查更新失败，状态码: '
 update-check-exception: '§4检查更新时发生IO异常.'
 home-info-create-failure: '§4错误: 创建homes.yml失败！'
 home-list-empty: '§6你还没有设置过家。'
+home-name-invalid: '§c错误: §4无效的家名称!'
 home-list: '§6家：§f'
+home-max: '§c你的家数量已达上限。'
 spawn-info-create-failure: '§4错误: 创建spawn.yml失败！'
 tpr-info-create-failure: '§4错误: 创建tpr.yml失败！'
 warp-info-create-failure: '§4错误: 创建warps.yml失败！'
@@ -37,7 +39,6 @@ command-reload: '§a配置文件重载完成。'
 command-back-not-back: '§c错误: §6没有上一位置可以回去。'
 command-back: '§6正在回到上一位置...'
 command-delhome-usage: '§c错误: 请使用§6/delhome <家名称>'
-home-name-invalid: '§c错误: §4无效的家名称!'
 command-delhome-dont-exist: '§c错误: §4家§c{0}§4不存在!'
 command-delhome: '§6家§c{0}§6已被移除。'
 command-delwarp-usage: '§c错误: 请使用§6/delwarp <传送点名称>'

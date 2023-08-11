@@ -28,7 +28,9 @@ public class Language {
     public static String updateCheckException;
     public static String homeInfoCreateFailure;
     public static String homeListEmpty;
+    public static String homeNameInvalid;
     public static String homeList;
+    public static String homeMax;
     public static String spawnInfoCreateFailure;
     public static String tprInfoCreateFailure;
     public static String warpInfoCreateFailure;
@@ -48,7 +50,6 @@ public class Language {
     public static String commandBackNotBack;
     public static String commandBack;
     public static String commandDelhomeUsage;
-    public static String homeNameInvalid;
     public static String commandDelhomeDontExist;
     public static String commandDelhome;
     public static String commandDelwarpUsage;

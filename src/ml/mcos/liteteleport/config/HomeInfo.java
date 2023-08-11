@@ -28,22 +28,30 @@ public class HomeInfo {
         homeInfo = Config.loadConfiguration(homes);
     }
 
+    private static String escape(String homeName) {
+        return homeName.equals("==") ? "== " : homeName;
+    }
+
+    private static String unescape(String homeName) {
+        return homeName.equals("== ") ? "==" : homeName;
+    }
+
     public static Location getHomeLocation(String player, String homeName) {
-        return Config.getLocation(homeInfo, player + "." + homeName);
+        return Config.getLocation(homeInfo, player + "." + escape(homeName));
     }
 
     public static void setHome(String player, String homeName, Location loc) {
-        Config.setLocation(homeInfo, player + "." + homeName, loc);
+        Config.setLocation(homeInfo, player + "." + escape(homeName), loc);
         Config.saveConfiguration(homeInfo, homes);
     }
 
     public static void deleteHome(String player, String homeName) {
-        homeInfo.set(player + "." + homeName, null);
+        homeInfo.set(player + "." + escape(homeName), null);
         Config.saveConfiguration(homeInfo, homes);
     }
 
     public static boolean exist(String player, String homeName) {
-        return homeInfo.contains(player + "." + homeName);
+        return homeInfo.contains(player + "." + escape(homeName));
     }
 
     public static List<String> getHomeList(String player) {
@@ -59,10 +67,10 @@ public class HomeInfo {
         }
         for (int i = 0; i < homeList.size(); i++) {
             if (i == 0) {
-                builder.append(Language.homeList).append(homeList.get(i));
+                builder.append(Language.homeList).append(unescape(homeList.get(i)));
                 continue;
             }
-            builder.append(", ").append(homeList.get(i));
+            builder.append(", ").append(unescape(homeList.get(i)));
         }
         return builder.toString();
     }
