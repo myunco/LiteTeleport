@@ -8,6 +8,7 @@ import ml.mcos.liteteleport.config.TprInfo;
 import ml.mcos.liteteleport.config.WarpInfo;
 import ml.mcos.liteteleport.consume.ConsumeInfo;
 import ml.mcos.liteteleport.metrics.Metrics;
+import ml.mcos.liteteleport.papi.LiteTeleportExpansion;
 import ml.mcos.liteteleport.teleport.RandomTeleport;
 import ml.mcos.liteteleport.teleport.TeleportRequest;
 import ml.mcos.liteteleport.update.UpdateChecker;
@@ -25,6 +26,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -74,6 +76,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         SpawnInfo.loadSpawnInfo();
         TprInfo.loadTprInfo();
         WarpInfo.loadWarpInfo();
+        setupPAPI();
     }
 
     public void setupEconomy() {
@@ -98,6 +101,14 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         pointsAPI = playerPoints.getAPI();
         sendMessage("Found PlayerPoints: §3v" + playerPoints.getDescription().getVersion());
+    }
+
+    public void setupPAPI() {
+        Plugin papi = getServer().getPluginManager().getPlugin("PlaceholderAPI");
+        if (papi != null && papi.isEnabled()) {
+            sendMessage("Found PlaceHolderAPI: §3v" + papi.getDescription().getVersion());
+            new LiteTeleportExpansion().register();
+        }
     }
 
     private int getMinecraftVersion() {
@@ -315,12 +326,14 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             if (homeList == null) {
                 player.sendMessage(Language.homeListEmpty);
                 return;
-            } else if (homeList.size() == 1) {
+            } else {
+                homeName = homeList.get(0);
+            }/*else if (homeList.size() == 1) {
                 homeName = homeList.get(0);
             } else {
                 player.sendMessage(HomeInfo.showHomeList(playerName));
                 return;
-            }
+            }*/
         } else {
             homeName = args[0];
         }
@@ -348,28 +361,32 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             player.sendMessage(Language.homeNameInvalid);
             return;
         }
+        List<String> homeList = HomeInfo.getHomeList(playerName);
+        int count;
+        if (homeList == null) {
+            count = 1;
+        } else if (homeList.contains(homeName)) {
+            count = homeList.indexOf(homeName) + 1;
+            player.sendMessage(Language.replaceArgs(Language.commandSethomeAlreadyExists, homeName));
+        } else {
+            count = homeList.size() + 1;
+        }
+        if (Config.maxOfHomes != 0 && count >= Config.maxOfHomes) {
+            player.sendMessage(Language.homeMax);
+            return;
+        }
         if (Config.sethomeConsume > 0.0 && !hasFreeSethomePermission(player)) {
-            List<String> homeList = HomeInfo.getHomeList(playerName);
-            int n;
-            if (homeList == null) {
-                n = 1;
-            } else if (homeList.contains(homeName)) {
-                n = homeList.indexOf(homeName) + 1;
-                player.sendMessage(Language.replaceArgs(Language.commandSethomeAlreadyExists, homeName));
-            } else {
-                n = homeList.size() + 1;
-            }
             ConsumeInfo consume;
-            if (n == 1) {
+            if (count == 1) {
                 consume = Config.firstSethomeConsume;
             } else {
-                int amount = (int) Math.pow(n, Config.sethomeConsume);
+                int amount = (int) Math.pow(count, Config.sethomeConsume);
                 if (Config.sethomeMaxConsume > 0 && amount > Config.sethomeMaxConsume) {
                     amount = Config.sethomeMaxConsume;
                 }
                 consume = new ConsumeInfo(Config.sethomeConsumeType, amount);
             }
-            if (!consume(player, consume, Language.replaceArgs(Language.commandSethomeConsume, n, consume.getDescription()), Language.replaceArgs(Language.commandSethomeConsumeNotEnough, consume.getConsumeName()))) {
+            if (!consume(player, consume, Language.replaceArgs(Language.commandSethomeConsume, count, consume.getDescription()), Language.replaceArgs(Language.commandSethomeConsumeNotEnough, consume.getConsumeName()))) {
                 return;
             }
         }

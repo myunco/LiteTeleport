@@ -14,13 +14,13 @@ public class Language {
     private static int version;
     public static String logPrefix;
     public static String messagePrefix;
+    public static String languageVersionError;
+    public static String languageUpdate;
+    public static String languageUpdateComplete;
     public static String economyNotFoundVault;
     public static String economyNotFoundEconomy;
     public static String pointsNotFound;
     public static String consumeInvalid;
-    public static String languageVersionError;
-    public static String languageUpdate;
-    public static String languageUpdateComplete;
     public static String updateFoundNewVersion;
     public static String updateMajorUpdate;
     public static String updateDownloadLink;
@@ -135,14 +135,14 @@ public class Language {
         version = config.getInt("version");
         logPrefix = config.getString("log-prefix", "[LiteTeleport] ");
         messagePrefix = config.getString("message-prefix", "§3[§6LiteTeleport§3] ");
-        economyNotFoundVault = config.getString("economy-not-found-vault", "未找到Vault，请检查是否正确安装Vault插件！");
-        economyNotFoundEconomy = config.getString("economy-not-found-economy", "未找到经济系统，请检查是否正确安装经济提供插件！(如Essentials、CMI、Economy等)");
-        pointsNotFound = config.getString("points-not-found", "未找到PlayerPoints，请检查是否正确安装点券插件！");
-        consumeInvalid = config.getString("consume-invalid", "无效的花费，请检查格式是否正确: ");
         languageVersionError = config.getString("language-version-error", "语言文件版本错误: ");
         languageUpdate = config.getString("language-update", "§e当前语言文件版本：§a{0} §c最新版本：§b{1} §6需要更新.");
         languageUpdateComplete = config.getString("language-update-complete", "§a语言文件更新完成!");
         languageUpdate(config, lang);
+        economyNotFoundVault = config.getString("economy-not-found-vault", "未找到Vault，请检查是否正确安装Vault插件！");
+        economyNotFoundEconomy = config.getString("economy-not-found-economy", "未找到经济系统，请检查是否正确安装经济提供插件！(如Essentials、CMI、Economy等)");
+        pointsNotFound = config.getString("points-not-found", "未找到PlayerPoints，请检查是否正确安装点券插件！");
+        consumeInvalid = config.getString("consume-invalid", "无效的花费，请检查格式是否正确: ");
         updateFoundNewVersion = config.getString("update-found-new-version", "§c发现新版本可用! §b当前版本: {0} §d最新版本: {1}");
         updateMajorUpdate = config.getString("update-major-update", "§e(有大更新)");
         updateDownloadLink = config.getString("update-download-link", "§a下载地址: ");
@@ -223,11 +223,19 @@ public class Language {
     }
 
     public static void languageUpdate(YamlConfiguration config, File lang) {
-        int currentVersion = 1;
+        int currentVersion = 2;
         if (version < currentVersion) {
-            //语言文件目前只有一个版本 升级代码暂时不写
-            plugin.getLogger().warning(Language.languageVersionError + Language.version);
-            config.set("version", 1);
+            plugin.sendMessage(replaceArgs(languageUpdate, version, currentVersion));
+            switch (version) {
+                case 1:
+                    config.set("home-max", "§c你的家数量已达上限。");
+                    break; //最后一个case再break，以便跨版本升级。
+                default:
+                    plugin.getLogger().warning(Language.languageVersionError + Language.version);
+                    return;
+            }
+            plugin.sendMessage(languageUpdateComplete);
+            config.set("version", currentVersion);
             Config.saveConfiguration(config, lang);
         }
     }

@@ -54,7 +54,7 @@ public class WarpInfo {
     public static String showWarpList() {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> warpList = getWarpList();
-        if (warpList.size() == 0) {
+        if (warpList.isEmpty()) {
             return Language.warpListEmpty;
         }
         for (int i = 0; i < warpList.size(); i++) {

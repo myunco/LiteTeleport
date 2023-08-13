@@ -1,10 +1,12 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.9.2
+version: 1.10.0-SNAPSHOT
 api-version: 1.13
+author: myunco
 softdepend:
   - Vault
   - PlayerPoints
+  - PlaceholderAPI
 commands:
   LiteTeleport:
     description: 'This is main command of the plugin.'
