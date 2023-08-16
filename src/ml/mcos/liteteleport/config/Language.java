@@ -30,7 +30,6 @@ public class Language {
     public static String homeListEmpty;
     public static String homeNameInvalid;
     public static String homeList;
-    public static String homeMax;
     public static String spawnInfoCreateFailure;
     public static String tprInfoCreateFailure;
     public static String warpInfoCreateFailure;
@@ -63,6 +62,7 @@ public class Language {
     public static String commandSethomeConsume;
     public static String commandSethomeConsumeNotEnough;
     public static String commandSethome;
+    public static String commandSethomeMax;
     public static String commandSetspawn;
     public static String commandSetwarpUsage;
     public static String commandSetwarp;
@@ -184,6 +184,7 @@ public class Language {
         commandSethomeConsume = config.getString("command-sethome-consume", "§c设置你的第§9{0}§c个家将花费{1}");
         commandSethomeConsumeNotEnough = config.getString("command-sethome-consume-not-enough", "§c错误: §4你没有足够的{0}支付本次设置花费。");
         commandSethome = config.getString("command-sethome", "§6已设置家。");
+        commandSethomeMax = config.getString("command-sethome-max", "§c你的家数量已达上限。");
         commandSetspawn = config.getString("command-setspawn", "§6已将世界出生点设为当前位置。");
         commandSetwarpUsage = config.getString("command-setwarp-usage", "§c错误: 请使用§6/setwarp <传送点名称>");
         commandSetwarp = config.getString("command-setwarp", "§6已设置传送点§c{0}§6。");
@@ -228,7 +229,7 @@ public class Language {
             plugin.sendMessage(replaceArgs(languageUpdate, version, currentVersion));
             switch (version) {
                 case 1:
-                    config.set("home-max", "§c你的家数量已达上限。");
+                    config.set("command-sethome-max", "§c你的家数量已达上限。");
                     break; //最后一个case再break，以便跨版本升级。
                 default:
                     plugin.getLogger().warning(Language.languageVersionError + Language.version);

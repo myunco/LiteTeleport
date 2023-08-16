@@ -29,11 +29,13 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class LiteTeleport extends JavaPlugin implements Listener {
     public static LiteTeleport plugin;
@@ -249,11 +251,47 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         return player.hasPermission("LiteTeleport.free.sethome");
     }
     
-    private void teleport(Player pLayer, Location location) {
-        if (Config.tpCooldown > 0) {
-            cdList.put(pLayer.getUniqueId(), System.currentTimeMillis());
+    private void teleport(Player player, Location location, ConsumeInfo consume, String message) {
+        if (Config.tpDelay <= 0 || player.hasPermission("LiteTeleport.delay.bypass")) {
+            teleportConfirm(player, location, message);
+            return;
         }
-        pLayer.teleport(location);
+        //player.sendTitle("§6传送将在§c3§6秒后开始...", "§6请勿移动", 10,60 ,10);
+        player.sendMessage("§6传送将在§c"+Config.tpDelay+"§6秒后开始，请勿移动。"); //TODO
+        plugin.sendMessage(String.valueOf(System.currentTimeMillis()));
+        getServer().getScheduler().runTaskTimer(plugin, new Consumer<BukkitTask>() {
+            int i = Config.tpDelay;
+            final Location pos = player.getLocation();
+            @Override
+            public void accept(BukkitTask bukkitTask) {
+                i--;
+                if (!compareLoc(pos, player.getLocation())) {
+                    //player.sendTitle("§c传送已取消。", "", 10, 20, 10);
+                    player.sendMessage("§c传送已取消。");
+                    consume.give(player);
+                    bukkitTask.cancel();
+                    return;
+                }
+                if (i == 0) {
+                    plugin.sendMessage(String.valueOf(System.currentTimeMillis()));
+                    teleportConfirm(player, location, message);
+                    bukkitTask.cancel();
+                }
+            }
+        }, 20, 20);
+
+    }
+
+    private void teleportConfirm(Player player, Location location, String message) {
+        if (Config.tpCooldown > 0) {
+            cdList.put(player.getUniqueId(), System.currentTimeMillis());
+        }
+        player.sendMessage(message);
+        player.teleport(location);
+    }
+
+    private boolean compareLoc(Location loc1, Location loc2) {
+        return loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
     }
 
     private int getCooldown(Player player) {
@@ -280,8 +318,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             return;
         }
         if (!isCooling(player) && teleportConsume(player, Config.backConsume)) {
-            player.sendMessage(Language.commandBack);
-            teleport(player, backLoc);
+            teleport(player, backLoc, Config.backConsume, Language.commandBack);
         }
     }
 
@@ -339,8 +376,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         if (HomeInfo.exist(playerName, homeName)) {
             if (!isCooling(player) && teleportConsume(player, Config.homeConsume)) {
-                player.sendMessage(Language.replaceArgs(Language.commandHome, homeName));
-                teleport(player, HomeInfo.getHomeLocation(playerName, homeName));
+                teleport(player, HomeInfo.getHomeLocation(playerName, homeName), Config.homeConsume, Language.replaceArgs(Language.commandHome, homeName));
             }
         } else {
             player.sendMessage(HomeInfo.showHomeList(playerName));
@@ -364,17 +400,18 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         List<String> homeList = HomeInfo.getHomeList(playerName);
         int count;
         if (homeList == null) {
-            count = 1;
+            count = 0;
         } else if (homeList.contains(homeName)) {
-            count = homeList.indexOf(homeName) + 1;
+            count = homeList.indexOf(homeName);
             player.sendMessage(Language.replaceArgs(Language.commandSethomeAlreadyExists, homeName));
         } else {
-            count = homeList.size() + 1;
+            count = homeList.size();
         }
-        if (Config.maxOfHomes != 0 && count >= Config.maxOfHomes) {
-            player.sendMessage(Language.homeMax);
+        if (Config.sethomeMax != 0 && count >= Config.sethomeMax && !player.hasPermission("LiteTeleport.sethome.unlimited")) {
+            player.sendMessage(Language.commandSethomeMax);
             return;
         }
+        count++;
         if (Config.sethomeConsume > 0.0 && !hasFreeSethomePermission(player)) {
             ConsumeInfo consume;
             if (count == 1) {
@@ -418,10 +455,9 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     private void commandSpawn(Player player) {
         if (!isCooling(player) && teleportConsume(player, Config.spawnConsume)) {
-            player.sendMessage(Language.teleport);
             Location loc = SpawnInfo.getSpawnLocation();
             //noinspection ConstantConditions
-            teleport(player, loc == null ? getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation() : loc);
+            teleport(player, loc == null ? getServer().getWorld(SpawnInfo.getSpawnWorld()).getSpawnLocation() : loc, Config.spawnConsume, Language.teleport);
         }
     }
 
@@ -475,21 +511,19 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptSourceConsumeNotEnoughSource, Config.tpSourceConsume.getConsumeName()));
             return;
         } else {
-            if (Config.tpAcceptConsume.getAmount() != 0 && !hasFreePermission(player)) {
+            if (!hasFreePermission(player)) {
                 Config.tpAcceptConsume.take(player);
             }
-            if (Config.tpSourceConsume.getAmount() != 0 && !hasFreePermission(tpRequest.getSource())) {
+            if (!hasFreePermission(tpRequest.getSource())) {
                 Config.tpSourceConsume.take(tpRequest.getSource());
             }
         }
         tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptSource, player.getDisplayName()));
         if (tpRequest.teleportType == 0) { //发起者传送到接受者
             player.sendMessage(Language.commandTpaccept);
-            tpRequest.getSource().sendMessage(Language.replaceArgs(Language.commandTpacceptTeleport, player.getDisplayName()));
-            teleport(tpRequest.getSource(), player.getLocation());
+            teleport(tpRequest.getSource(), player.getLocation(), Config.tpSourceConsume, Language.replaceArgs(Language.commandTpacceptTeleport, player.getDisplayName()));
         } else { //接受者传送到发起者
-            player.sendMessage(Language.teleport);
-            teleport(player, tpRequest.location);
+            teleport(player, tpRequest.location, Config.tpAcceptConsume, Language.teleport);
         }
     }
 
@@ -561,7 +595,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         Location loc;
         if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
-            if (mcVersion > 10) { //1.10没有sendTitle 而且低版本区块加载比高版本快很多 不需要提示等待
+            if (mcVersion > 10) { //1.10没有提供sendTitle方法 而且低版本区块加载比高版本快很多 不需要提示等待
                 player.sendTitle(Language.commandTprTitle, Language.commandTprSubtitle, 20, 160, 20);
             }
             loc = RandomTeleport.getRandomLocByNether(player);
@@ -586,8 +620,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             return;
         }
         TprInfo.setTprCount(playerName, n);
-        player.sendMessage(Language.teleport);
-        teleport(player, loc);
+        teleportConfirm(player, loc, Language.teleport); //随机传送不支持延时 一旦开始不能取消
     }
 
     private void commandWarp(String[] args, Player player) {
@@ -600,8 +633,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         if (WarpInfo.exist(args[0])) {
             if (!isCooling(player) && teleportConsume(player, Config.warpConsume)) {
-                player.sendMessage(Language.replaceArgs(Language.commandWarp, args[0]));
-                teleport(player, WarpInfo.getWarpLocation(args[0]));
+                teleport(player, WarpInfo.getWarpLocation(args[0]), Config.warpConsume, Language.replaceArgs(Language.commandWarp, args[0]));
             }
         } else {
             player.sendMessage(Language.warpDontExist);

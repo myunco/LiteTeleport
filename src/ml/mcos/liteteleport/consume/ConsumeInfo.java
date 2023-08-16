@@ -29,6 +29,9 @@ public class ConsumeInfo {
     }
 
     public boolean has(Player player) {
+        if (getAmount() == 0) {
+            return true;
+        }
         switch (type) {
             case ECONOMY:
                 return LiteTeleport.economy != null && LiteTeleport.economy.has(player, amount);
@@ -40,6 +43,9 @@ public class ConsumeInfo {
     }
 
     public boolean take(Player player) {
+        if (getAmount() == 0) {
+            return true;
+        }
         switch (type) {
             case ECONOMY:
                 return LiteTeleport.economy != null && LiteTeleport.economy.withdrawPlayer(player, amount).transactionSuccess();
@@ -52,6 +58,9 @@ public class ConsumeInfo {
     }
 
     public void give(Player player) {
+        if (getAmount() == 0) {
+            return;
+        }
         switch (type) {
             case ECONOMY:
                 if (LiteTeleport.economy != null) {

@@ -152,3 +152,9 @@ permissions:
   LiteTeleport.cooldown.bypass:
     description: '使用传送命令不受冷却时间限制'
     default: 'op'
+  LiteTeleport.delay.bypass:
+    description: '使用传送命令不受传送延时影响'
+    default: 'op'
+  LiteTeleport.sethome.unlimited:
+    description: '使用/sethome命令不受家数量上限影响'
+    default: 'op'

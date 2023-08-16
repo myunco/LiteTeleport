@@ -7,6 +7,9 @@ checkUpdate: true
 #传送命令冷却时间 单位：秒
 tpCooldown: 0
 
+#传送延时 在延时期间移动将取消传送 单位：秒
+tpDelay: 0
+
 #关于花费
 #花费支持 经验等级/金币/点券
 #在花费后面加上类型表示使用指定类型 不指定默认为经验等级
@@ -45,7 +48,7 @@ sethomeConsume: 3.14L
 sethomeMaxConsume: 0
 
 #设置家的数量上限 0表示无上限
-maxOfHomes: 0
+sethomeMax: 0
 
 #使用/home命令的花费
 homeConsume: 0L

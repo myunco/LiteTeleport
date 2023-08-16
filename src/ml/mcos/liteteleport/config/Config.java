@@ -21,6 +21,7 @@ public class Config {
     public static String language;
     public static boolean checkUpdate;
     public static int tpCooldown;
+    public static int tpDelay;
     public static ConsumeInfo spawnConsume;
     public static ConsumeInfo tpSourceConsume;
     public static ConsumeInfo tpAcceptConsume;
@@ -30,7 +31,7 @@ public class Config {
     public static double sethomeConsume;
     public static ConsumeInfo.ConsumeType sethomeConsumeType;
     public static int sethomeMaxConsume;
-    public static int maxOfHomes;
+    public static int sethomeMax;
     public static ConsumeInfo homeConsume;
     public static ConsumeInfo warpConsume;
     public static ConsumeInfo firstTprConsume;
@@ -53,6 +54,7 @@ public class Config {
         Language.loadLanguage(language);
         checkUpdate = config.getBoolean("checkUpdate", true);
         tpCooldown = config.getInt("tpCooldown");
+        tpDelay = config.getInt("tpDelay");
         spawnConsume = getConsumeInfo(config, "spawnConsume");
         tpSourceConsume = getConsumeInfo(config, "tpSourceConsume");
         tpAcceptConsume = getConsumeInfo(config, "tpAcceptConsume");
@@ -61,7 +63,7 @@ public class Config {
         firstSethomeConsume = getConsumeInfo(config, "firstSethomeConsume");
         sethomeConsume = getSethomeConsume(config);
         sethomeMaxConsume = config.getInt("sethomeMaxConsume");
-        maxOfHomes = config.getInt("maxOfHomes");
+        sethomeMax = config.getInt("sethomeMax");
         homeConsume = getConsumeInfo(config, "homeConsume");
         warpConsume = getConsumeInfo(config, "warpConsume");
         firstTprConsume = getConsumeInfo(config, "firstTprConsume");
