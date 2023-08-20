@@ -191,6 +191,9 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 case "delwarp":
                     commandDelwarp(args, player);
                     break;
+                case "homes":
+                    commandHomes(player);
+                    break;
             }
         } else {
             sender.sendMessage("§c错误: §6本命令只能玩家使用。");
@@ -381,6 +384,10 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         } else {
             player.sendMessage(HomeInfo.showHomeList(playerName));
         }
+    }
+
+    private void commandHomes(Player player) {
+        player.sendMessage(HomeInfo.showHomeList(player.getName()));
     }
 
     private void commandSethome(String[] args, Player player) {

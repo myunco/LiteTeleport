@@ -71,6 +71,11 @@ commands:
     usage: '/home [home name]'
     permission: 'LiteTeleport.home'
     permission-message: '§c你没有权限使用此命令!'
+  homes:
+    description: '查看家列表。'
+    usage: '/homes'
+    permission: 'LiteTeleport.home'
+    permission-message: '§c你没有权限使用此命令!'
   tpr:
     description: '随机传送。'
     usage: '/tpr'
