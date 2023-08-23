@@ -246,21 +246,12 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         return player.hasPermission("LiteTeleport.free");
     }
 
-    private boolean hasFreeTprPermission(Player player) {
-        return player.hasPermission("LiteTeleport.free.tpr");
-    }
-
-    private boolean hasFreeSethomePermission(Player player) {
-        return player.hasPermission("LiteTeleport.free.sethome");
-    }
-    
     private void teleport(Player player, Location location, ConsumeInfo consume, String message) {
         if (Config.tpDelay <= 0 || player.hasPermission("LiteTeleport.delay.bypass")) {
             teleportConfirm(player, location, message);
             return;
         }
-        //player.sendTitle("§6传送将在§c3§6秒后开始...", "§6请勿移动", 10,60 ,10);
-        player.sendMessage("§6传送将在§c"+Config.tpDelay+"§6秒后开始，请勿移动。"); //TODO
+        player.sendMessage(Language.replaceArgs(Language.teleportDelay, Config.tpDelay));
         plugin.sendMessage(String.valueOf(System.currentTimeMillis()));
         getServer().getScheduler().runTaskTimer(plugin, new Consumer<BukkitTask>() {
             int i = Config.tpDelay;
@@ -269,8 +260,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             public void accept(BukkitTask bukkitTask) {
                 i--;
                 if (!compareLoc(pos, player.getLocation())) {
-                    //player.sendTitle("§c传送已取消。", "", 10, 20, 10);
-                    player.sendMessage("§c传送已取消。");
+                    player.sendMessage(Language.teleportCancel);
                     consume.give(player);
                     bukkitTask.cancel();
                     return;
@@ -419,7 +409,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             return;
         }
         count++;
-        if (Config.sethomeConsume > 0.0 && !hasFreeSethomePermission(player)) {
+        if (Config.sethomeConsume > 0.0 && !player.hasPermission("LiteTeleport.free.sethome")) {
             ConsumeInfo consume;
             if (count == 1) {
                 consume = Config.firstSethomeConsume;
@@ -584,7 +574,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         }
         int n = TprInfo.getTprCount(playerName) + 1;
         ConsumeInfo consume;
-        if (Config.tprConsume > 0.0 && !hasFreeTprPermission(player)) {
+        if (Config.tprConsume > 0.0 && !player.hasPermission("LiteTeleport.free.tpr")) {
             if (n == 1) {
                 consume = Config.firstTprConsume;
             } else {

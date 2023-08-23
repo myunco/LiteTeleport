@@ -44,6 +44,8 @@ public class Language {
     public static String teleportConsume;
     public static String teleportConsumeNotEnough;
     public static String teleportCooldown;
+    public static String teleportDelay;
+    public static String teleportCancel;
     public static String commandVersion;
     public static String commandReload;
     public static String commandBackNotBack;
@@ -165,6 +167,8 @@ public class Language {
         teleportConsume = config.getString("teleport-consume", "§c本次传送将花费{0}");
         teleportConsumeNotEnough = config.getString("teleport-consume-not-enough", "§c错误: §4你没有足够的{0}支付本次传送花费。");
         teleportCooldown = config.getString("teleport-cooldown", "§4传送冷却: §c{0}§4秒。");
+        teleportDelay = config.getString("teleport-delay", "§6传送将在§c{0}§6秒后开始，请勿移动。");
+        teleportCancel = config.getString("teleport-cancel", "§c传送已取消。");
         commandVersion = config.getString("command-version", "§a当前版本: §b");
         commandReload = config.getString("command-reload", "§a配置文件重载完成。");
         commandBackNotBack = config.getString("command-back-not-back", "§c错误: §6没有上一位置可以回去。");
@@ -230,6 +234,8 @@ public class Language {
             switch (version) {
                 case 1:
                     config.set("command-sethome-max", "§c你的家数量已达上限。");
+                    config.set("teleport-delay", "§6传送将在§c{0}§6秒后开始，请勿移动。");
+                    config.set("teleport-cancel", "§c传送已取消。");
                     break; //最后一个case再break，以便跨版本升级。
                 default:
                     plugin.getLogger().warning(Language.languageVersionError + Language.version);

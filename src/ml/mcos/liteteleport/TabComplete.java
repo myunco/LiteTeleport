@@ -33,7 +33,7 @@ public class TabComplete {
             return ret;
         } else if (list.isEmpty()) {
             return null;
-        } else if (args[args.length - 1].equals("")) {
+        } else if (args[args.length - 1].isEmpty()) {
             return list;
         }
         String arg = args[args.length - 1].toLowerCase();

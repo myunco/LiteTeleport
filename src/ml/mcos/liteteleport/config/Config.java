@@ -48,7 +48,7 @@ public class Config {
 
     public static void loadConfig() {
         plugin.saveDefaultConfig();
-        YamlConfiguration config = loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
+        YamlConfiguration config = updateConfiguration();
         language = config.getString("language", "zh_cn");
         assert language != null; //免得IDEA警告language可能为null
         Language.loadLanguage(language);
@@ -91,6 +91,24 @@ public class Config {
             config.loadFromString(builder.toString());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return config;
+    }
+
+    public static YamlConfiguration updateConfiguration() {
+        File file = new File(plugin.getDataFolder(), "config.yml");
+        YamlConfiguration config = loadConfiguration(file);
+        if (!config.contains("tpDelay")) { //没有1.10.0版本新加的配置 需要升级
+            //更新config会导致注释丢失 为避免这种情况 使用流来追加新内容
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
+                writer.write("\r\n#传送延时 在延时期间移动将取消传送 单位：秒\r\n");
+                writer.write("tpDelay: 0\r\n");
+                writer.write("\r\n#设置家的数量上限 0表示无上限\r\n");
+                writer.write("sethomeMax: 0\r\n");
+                config = loadConfiguration(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return config;
     }
