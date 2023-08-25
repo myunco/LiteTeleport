@@ -13,8 +13,6 @@ import java.util.TimerTask;
 
 public class UpdateChecker {
     public static LiteTeleport plugin = LiteTeleport.plugin;
-    public static String currentVersion = plugin.getDescription().getVersion();
-    public static String[] current = currentVersion.split("\\.");
     public static Timer timer;
 
     public static void start() {
@@ -27,7 +25,7 @@ public class UpdateChecker {
                         CheckResult result = checkVersionUpdate("https://myunco.sinacloud.net/C8A05E18/version.txt");
                         if (result.getResultType() == CheckResult.ResultType.SUCCESS) {
                             if (result.hasNewVersion()) {
-                                String str = Language.replaceArgs(Language.updateFoundNewVersion, currentVersion, result.getLatestVersion());
+                                String str = Language.replaceArgs(Language.updateFoundNewVersion, CheckResult.currentVersion, result.getLatestVersion());
                                 plugin.sendMessage(result.hasMajorUpdate() ? Language.updateMajorUpdate + str : str);
                                 plugin.sendMessage(Language.updateDownloadLink + "https://www.mcbbs.net/thread-1268795-1-1.html");
                             }
@@ -57,18 +55,7 @@ public class UpdateChecker {
             String latestVersion = reader.readLine();
             reader.close();
             conn.disconnect();
-            if (currentVersion.equals(latestVersion)) {
-                return new CheckResult(null, false, code, CheckResult.ResultType.SUCCESS);
-            } else {
-                String[] latest = latestVersion.split("\\.");
-                boolean majorUpdate;
-                if (!latest[0].equals(current[0])) {
-                    majorUpdate = true;
-                } else {
-                    majorUpdate = !latest[1].equals(current[1]);
-                }
-                return new CheckResult(latestVersion, majorUpdate, code, CheckResult.ResultType.SUCCESS);
-            }
+            return new CheckResult(latestVersion, code, CheckResult.ResultType.SUCCESS);
         } else {
             return new CheckResult(code, CheckResult.ResultType.FAILURE);
         }
