@@ -1,11 +1,6 @@
 package ml.mcos.liteteleport;
 
-import ml.mcos.liteteleport.config.Config;
-import ml.mcos.liteteleport.config.HomeInfo;
-import ml.mcos.liteteleport.config.Language;
-import ml.mcos.liteteleport.config.SpawnInfo;
-import ml.mcos.liteteleport.config.TprInfo;
-import ml.mcos.liteteleport.config.WarpInfo;
+import ml.mcos.liteteleport.config.*;
 import ml.mcos.liteteleport.consume.ConsumeInfo;
 import ml.mcos.liteteleport.metrics.Metrics;
 import ml.mcos.liteteleport.papi.LiteTeleportExpansion;
@@ -138,6 +133,9 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                         UpdateChecker.stop();
                         initConfig();
                         sender.sendMessage(Language.messagePrefix + Language.commandReload);
+                        return true;
+                    case "migrate":
+                        EssMigrate.migrateData(sender);
                         return true;
                 }
             }

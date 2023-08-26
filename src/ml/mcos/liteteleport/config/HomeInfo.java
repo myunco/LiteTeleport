@@ -45,6 +45,14 @@ public class HomeInfo {
         Config.saveConfiguration(homeInfo, homes);
     }
 
+    public static void setHome(String player, String homeName, String world, double x, double y, double z, float yaw, float pitch) {
+        Config.setLocation(homeInfo, player + "." + escape(homeName), world, x, y, z, yaw, pitch);
+    }
+
+    public static void saveConfiguration() {
+        Config.saveConfiguration(homeInfo, homes);
+    }
+
     public static void deleteHome(String player, String homeName) {
         homeInfo.set(player + "." + escape(homeName), null);
         Config.saveConfiguration(homeInfo, homes);

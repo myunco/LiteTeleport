@@ -3,6 +3,7 @@ main: ml.mcos.liteteleport.LiteTeleport
 version: 1.10.0-SNAPSHOT
 api-version: 1.13
 author: myunco
+website: https://www.mcbbs.net/thread-1268795-1-1.html
 softdepend:
   - Vault
   - PlayerPoints
@@ -10,7 +11,7 @@ softdepend:
 commands:
   LiteTeleport:
     description: 'This is main command of the plugin.'
-    usage: '/LiteTeleport <version|reload>'
+    usage: '/LiteTeleport <version|reload|migrate>'
     aliases: 'ltp'
     permission: 'LiteTeleport.admin'
     permission-message: "§cYou don't have permission!"

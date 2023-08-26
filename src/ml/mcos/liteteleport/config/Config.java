@@ -194,6 +194,15 @@ public class Config {
         config.set(path + ".pitch", loc.getPitch());
     }
 
+    public static void setLocation(YamlConfiguration config, String path, String world, double x, double y, double z, float yaw, float pitch) {
+        config.set(path + ".world", world);
+        config.set(path + ".x", x);
+        config.set(path + ".y", y);
+        config.set(path + ".z", z);
+        config.set(path + ".yaw", yaw);
+        config.set(path + ".pitch", pitch);
+    }
+
     @SuppressWarnings("ConstantConditions")
     public static Location getLocation(YamlConfiguration config, String path) {
         return new Location(plugin.getServer().getWorld(config.getString(path + ".world", "world")),

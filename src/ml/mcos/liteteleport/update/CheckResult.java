@@ -4,7 +4,7 @@ import ml.mcos.liteteleport.LiteTeleport;
 
 public class CheckResult {
     public static String currentVersion = LiteTeleport.plugin.getDescription().getVersion();
-    public static String[] current = currentVersion.split("\\.");
+    public static String[] current = currentVersion.replace('-', '.').split("\\.");
 
     public enum ResultType {
         SUCCESS, FAILURE
@@ -22,24 +22,30 @@ public class CheckResult {
 
     public CheckResult(String latestVersion, int responseCode, ResultType type) {
         this.latestVersion = latestVersion;
-        if (currentVersion.equals(latestVersion)) {
-            majorUpdate = false;
-            newVersion = false;
-        } else {
+        this.responseCode = responseCode;
+        this.resultType = type;
+        if (!currentVersion.equals(latestVersion)) {
             String[] latest = latestVersion.split("\\.");
             if (Integer.parseInt(latest[0]) > Integer.parseInt(current[0])) {
                 newVersion = true;
                 majorUpdate = true;
-            } else if (Integer.parseInt(latest[1]) > Integer.parseInt(current[1])) {
-                newVersion = true;
-                majorUpdate = true;
-            } else {
-                newVersion = Integer.parseInt(latest[2]) > Integer.parseInt(current[2]);
-                majorUpdate = false;
+                return;
+            } else if (Integer.parseInt(latest[0]) == Integer.parseInt(current[0])) {
+                if (Integer.parseInt(latest[1]) > Integer.parseInt(current[1])) {
+                    newVersion = true;
+                    majorUpdate = true;
+                    return;
+                } else if (Integer.parseInt(latest[1]) == Integer.parseInt(current[1])) {
+                    if (Integer.parseInt(latest[2]) > Integer.parseInt(current[2])) {
+                        newVersion = true;
+                        majorUpdate = false;
+                        return;
+                    }
+                }
             }
         }
-        this.responseCode = responseCode;
-        this.resultType = type;
+        majorUpdate = false;
+        newVersion = false;
     }
 
     public ResultType getResultType() {

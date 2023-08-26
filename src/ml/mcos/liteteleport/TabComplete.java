@@ -10,7 +10,7 @@ public class TabComplete {
     public static HashMap<String, List<String>> tabListMap = new HashMap<>();
 
     static {
-        tabListMap.put("LiteTeleport", Arrays.asList("version", "reload"));
+        tabListMap.put("LiteTeleport", Arrays.asList("version", "reload", "migrate"));
         tabListMap.put("tpa", Collections.emptyList());
         tabListMap.put("tpahere", Collections.emptyList());
     }
