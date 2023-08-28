@@ -37,7 +37,7 @@ public class WarpInfo {
         Config.saveConfiguration(warpInfo, warps);
     }
 
-    public static void setWarpLocation(String warp, String world, double x, double y, double z, float yaw, float pitch) {
+    public static void setWarpLocation(String warp, String world, double x, double y, double z, double yaw, double pitch) {
         Config.setLocation(warpInfo, warp, world, x, y, z, yaw, pitch);
     }
 

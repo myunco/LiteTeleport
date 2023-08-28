@@ -1,6 +1,6 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.10.0-SNAPSHOT
+version: 1.10.0
 api-version: 1.13
 author: myunco
 website: https://www.mcbbs.net/thread-1268795-1-1.html

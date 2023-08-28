@@ -194,7 +194,7 @@ public class Config {
         config.set(path + ".pitch", loc.getPitch());
     }
 
-    public static void setLocation(YamlConfiguration config, String path, String world, double x, double y, double z, float yaw, float pitch) {
+    public static void setLocation(YamlConfiguration config, String path, String world, double x, double y, double z, double yaw, double pitch) {
         config.set(path + ".world", world);
         config.set(path + ".x", x);
         config.set(path + ".y", y);

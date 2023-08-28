@@ -34,12 +34,12 @@ public class EssMigrate {
         if (files.length != 0) {
             for (File file : files) {
                 YamlConfiguration warp = YamlConfiguration.loadConfiguration(file);
-                String world = warp.getString("world-name");
+                String world = warp.getString(LiteTeleport.mcVersion > 7 ? "world-name" : "world");
                 double x = warp.getDouble("x");
                 double y = warp.getDouble("y");
                 double z = warp.getDouble("z");
-                float yaw = (float) warp.getDouble("yaw");
-                float pitch = (float) warp.getDouble("pitch");
+                double yaw = warp.getDouble("yaw");
+                double pitch = warp.getDouble("pitch");
                 WarpInfo.setWarpLocation(warp.getString("name"), world, x, y, z, yaw, pitch);
             }
             WarpInfo.saveConfiguration();
@@ -56,17 +56,17 @@ public class EssMigrate {
             if (!userdata.contains("homes")) {
                 continue;
             }
-            String player = userdata.getString("last-account-name");
+            String player = LiteTeleport.mcVersion > 7 ? userdata.getString("last-account-name") : file.getName().split("\\.")[0];
             ConfigurationSection section = userdata.getConfigurationSection("homes");
             assert section != null;
             Set<String> homes = section.getKeys(false);
             for (String home : homes) {
-                String world = section.getString(home + ".world-name");
+                String world = section.getString(LiteTeleport.mcVersion > 7 ? home + ".world-name" : home + ".world");
                 double x = section.getDouble(home + ".x");
                 double y = section.getDouble(home + ".y");
                 double z = section.getDouble(home + ".z");
-                float yaw = (float) section.getDouble(home + ".yaw");
-                float pitch = (float) section.getDouble(home + ".pitch");
+                double yaw = section.getDouble(home + ".yaw");
+                double pitch = section.getDouble(home + ".pitch");
                 HomeInfo.setHome(player, home, world, x, y, z, yaw, pitch);
             }
             HomeInfo.saveConfiguration();
