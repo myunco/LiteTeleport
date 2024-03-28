@@ -1,9 +1,9 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.10.0
+version: 1.10.1
 api-version: 1.13
 author: myunco
-website: https://www.mcbbs.net/thread-1268795-1-1.html
+website: https://github.com/myunco/LiteTeleport
 softdepend:
   - Vault
   - PlayerPoints

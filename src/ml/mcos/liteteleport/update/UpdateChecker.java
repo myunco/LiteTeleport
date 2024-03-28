@@ -8,12 +8,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class UpdateChecker {
-    public static LiteTeleport plugin = LiteTeleport.plugin;
-    public static Timer timer;
+    private static final LiteTeleport plugin = LiteTeleport.plugin;
+    private static Timer timer;
+    private static String downloadLink;
 
     public static void start() {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -27,7 +29,8 @@ public class UpdateChecker {
                             if (result.hasNewVersion()) {
                                 String str = Language.replaceArgs(Language.updateFoundNewVersion, CheckResult.currentVersion, result.getLatestVersion());
                                 plugin.sendMessage(result.hasMajorUpdate() ? Language.updateMajorUpdate + str : str);
-                                plugin.sendMessage(Language.updateDownloadLink + "https://www.mcbbs.net/thread-1268795-1-1.html");
+                                // plugin.sendMessage(Language.updateDownloadLink + "https://www.mcbbs.net/thread-1268795-1-1.html");
+                                plugin.sendMessage(Language.updateDownloadLink + downloadLink);
                             }
                         } else {
                             plugin.sendMessage(Language.updateCheckFailure + result.getResponseCode());
@@ -37,7 +40,7 @@ public class UpdateChecker {
                         e.printStackTrace();
                     }
                 }
-            }, 14000, 12 * 60 * 60 * 1000);
+            }, 7000, 12 * 60 * 60 * 1000);
         });
     }
 
@@ -51,8 +54,9 @@ public class UpdateChecker {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         int code = conn.getResponseCode();
         if (code == HttpURLConnection.HTTP_OK) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             String latestVersion = reader.readLine();
+            downloadLink = reader.readLine();
             reader.close();
             conn.disconnect();
             return new CheckResult(latestVersion, code, CheckResult.ResultType.SUCCESS);
