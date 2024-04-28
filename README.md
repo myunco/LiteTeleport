@@ -1,4 +1,6 @@
 # LiteTeleport
+<span>[ English | <a href="README_ZH.md">中文</a> ]</span>
+
 This is a Bukkit plugin that provides a series of basic teleport commands for the Minecraft server, enhancing the gaming experience for players.
 
 For a detailed description of the plugin, please visit ~[mcbbs.net](https://www.mcbbs.net/thread-1268795-1-1.html)~ [myunco.net](https://myunco.net/thread-4-1-1.html).
@@ -24,10 +26,6 @@ How to install? / Installation / Setup
 Building
 ---
 After cloning this repository, add [Craftbukkit-1.13.2.jar](https://getbukkit.org/get/fQ2hcjORI73x66tj7h0X8f4hteJAB64i) to dependencies, build the project using IDEA Artifacts.
-
-Contributing
----
-Thanks, but I don't think contributions are needed at this time.
 
 # Acknowledgment
 Thanks to [JetBrains](https://www.jetbrains.com/?from=ServerMonitor) for the [Free Open Source Licenses](https://jb.gg/OpenSourceSupport)
