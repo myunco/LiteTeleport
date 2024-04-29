@@ -3,7 +3,7 @@
 
 这是一个 Bukkit 插件，为 Minecraft 服务器提供一系列基础传送命令，增强玩家的游戏体验。
 
-有关插件的详细说明，请访问 ~~[mcbbs.net](ht~tps://www.mcbbs.net/thread-1268795-1-1.html~ [myunco.net](https://myunco.net/thread-4-1-1.html).
+有关插件的详细说明，请访问 ~~[mcbbs.net](https://www.mcbbs.net/thread-1268795-1-1.html)~~ [myunco.net](https://myunco.net/thread-4-1-1.html).
 
 bStats
 ---
