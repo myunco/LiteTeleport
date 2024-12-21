@@ -70,7 +70,7 @@ public class HomeInfo {
     public static String showHomeList(String player) {
         StringBuilder builder = new StringBuilder();
         List<String> homeList = getHomeList(player);
-        if (homeList == null) {
+        if (homeList == null || homeList.isEmpty()) {
             return Language.homeListEmpty;
         }
         for (int i = 0; i < homeList.size(); i++) {

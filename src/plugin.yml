@@ -1,9 +1,11 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.10.1
+version: 1.10.2
 api-version: 1.13
 author: myunco
 website: https://github.com/myunco/LiteTeleport
+description: This is a Bukkit plugin that provides a series of basic teleport commands for the Minecraft server, enhancing the gaming experience for players.
+  For a detailed description of the plugin, please visit https://myunco.net/thread-4-1-1.html
 softdepend:
   - Vault
   - PlayerPoints

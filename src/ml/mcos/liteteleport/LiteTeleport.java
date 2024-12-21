@@ -7,6 +7,7 @@ import ml.mcos.liteteleport.papi.LiteTeleportExpansion;
 import ml.mcos.liteteleport.teleport.RandomTeleport;
 import ml.mcos.liteteleport.teleport.TeleportRequest;
 import ml.mcos.liteteleport.update.UpdateChecker;
+import ml.mcos.liteteleport.update.UpdateNotification;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
@@ -50,6 +51,9 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         mcVersion = getMinecraftVersion();
         initConfig();
         getServer().getPluginManager().registerEvents(this, this);
+        if (Config.checkUpdate) {
+            getServer().getPluginManager().registerEvents(new UpdateNotification(), this);
+        }
         new Metrics(this, 12936);
     }
 
@@ -351,7 +355,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             return;
         } else if (args.length == 0) {
             List<String> homeList = HomeInfo.getHomeList(playerName);
-            if (homeList == null) {
+            if (homeList == null || homeList.isEmpty()) {
                 player.sendMessage(Language.homeListEmpty);
                 return;
             } else {
