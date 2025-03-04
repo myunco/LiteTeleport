@@ -71,13 +71,24 @@ tprMaxConsume: 0
 tprCenter: true
 
 #随机传送的最小半径 (相对于中心点位置)
-tprMinRadius: 2000
+tprMinRadius: 200
 
 #随机传送的最大半径 (相对于中心点位置)
-tprMaxRadius: 500000
+tprMaxRadius: 5000
+
+#随机传送模式 true=矩形范围内随机传送 false=圆形范围内随机传送
+tprMode: true
+
+#允许随机传送到水面 true表示允许 false表示不允许 (如果世界中海洋非常多建议设置为true 否则可能导致多次加载随机区块寻找没水的位置影响性能)
+tprAllowWater: false
+
+#如果允许传送到水面 在传送到水面时是否给予玩家水下呼吸效果(防止区块加载卡顿导致玩家淹死) 0表示不给予 10表示给予10秒 60表示给予60秒 以此类推
+tprWaterBreathing: 60
 
 #允许随机传送的世界
 allowTprWorld:
   - world
   - world_nether
   - world_the_end
+  - DIM-1
+  - DIM1

@@ -1,4 +1,4 @@
-package ml.mcos.liteteleport;
+package ml.mcos.liteteleport.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;

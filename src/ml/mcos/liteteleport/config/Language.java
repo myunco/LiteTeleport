@@ -110,7 +110,7 @@ public class Language {
         String langPath = "lang/" + language + ".yml";
         File lang = new File(plugin.getDataFolder(), langPath);
         if (!lang.exists()) {
-            if (plugin.classLoader.getResource(langPath) == null) {
+            if (plugin.classLoader().getResource(langPath) == null) {
                 InputStream in = plugin.getResource("lang/zh_cn.yml");
                 if (in != null) {
                     try {
@@ -219,7 +219,7 @@ public class Language {
         commandTprConsume = config.getString("command-tpr-consume", "§c第§3{0}§c次随机传送将花费{1}");
         commandTprConsumeNotEnough = config.getString("command-tpr-consume-not-enough", "§c错误: §4你没有足够的{0}支付本次随机传送花费。");
         commandTprTitle = config.getString("command-tpr-title", "§a随机传送");
-        commandTprSubtitle = config.getString("command-tpr-subtitle", "§b传送将在10秒内开始···");
+        commandTprSubtitle = config.getString("command-tpr-subtitle", "§b正在寻找安全位置，请稍候···");
         commandTprTheEnd = config.getString("command-tpr-the-end", "§3寻找安全位置可能需要花费一些时间，请耐心等待。");
         commandTprNotFoundSafeLocation = config.getString("command-tpr-not-found-safe-location", "§c错误: §4未找到安全位置，请重试。");
         commandWarpUsage = config.getString("command-warp-usage", "§c错误: 请使用§6/warp <传送点名称>");

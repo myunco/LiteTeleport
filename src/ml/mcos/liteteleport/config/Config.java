@@ -41,8 +41,10 @@ public class Config {
     public static boolean tprCenter;
     public static int tprMinRadius;
     public static int tprMaxRadius;
+    public static boolean tprMode;
+    public static boolean tprAllowWater;
+    public static int tprWaterBreathing;
     public static List<String> allowTprWorld;
-
     public static boolean useEconomy;
     public static boolean usePoints;
 
@@ -71,13 +73,24 @@ public class Config {
         tprMaxConsume = config.getInt("tprMaxConsume");
         tprCenter = config.getBoolean("tprCenter");
         tprMinRadius = config.getInt("tprMinRadius");
+        if (tprMinRadius < 0) {
+            tprMinRadius = 0;
+        }
         tprMaxRadius = config.getInt("tprMaxRadius");
+        if (tprMaxRadius <= tprMinRadius) {
+            tprMaxRadius = tprMinRadius + 1;
+        }
+        tprMode = config.getBoolean("tprMode", true);
+        tprAllowWater = config.getBoolean("tprAllowWater");
+        tprWaterBreathing = config.getInt("tprWaterBreathing");
         allowTprWorld = config.getStringList("allowTprWorld");
+        allowTprWorld.replaceAll(String::toLowerCase);
     }
 
     public static YamlConfiguration loadConfiguration(File file) {
         YamlConfiguration config = new YamlConfiguration();
         try {
+            //noinspection IOStreamConstructor
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             StringBuilder builder = new StringBuilder();
             String line;
@@ -101,10 +114,23 @@ public class Config {
         if (!config.contains("tpDelay")) { //没有1.10.0版本新加的配置 需要升级
             //更新config会导致注释丢失 为避免这种情况 使用流来追加新内容
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
-                writer.write("\r\n#传送延时 在延时期间移动将取消传送 单位：秒\r\n");
-                writer.write("tpDelay: 0\r\n");
-                writer.write("\r\n#设置家的数量上限 0表示无上限\r\n");
-                writer.write("sethomeMax: 0\r\n");
+                writer.write("\r\n#传送延时 在延时期间移动将取消传送 单位：秒\r\n" +
+                        "tpDelay: 0\r\n" +
+                        "\r\n#设置家的数量上限 0表示无上限\r\n" +
+                        "sethomeMax: 0\r\n");
+                config = loadConfiguration(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (!config.contains("tprMode")) { //没有1.11.0版本新加的配置 需要升级
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
+                writer.write("\r\n#随机传送模式 true=矩形范围内随机传送 false=圆形范围内随机传送\r\n" +
+                        "tprMode: true\r\n" +
+                        "\r\n#允许随机传送到水面 true表示允许 false表示不允许 (如果世界中海洋非常多建议设置为true 否则可能导致多次加载随机区块寻找没水的位置影响性能)\r\n" +
+                        "tprAllowWater: false\r\n" +
+                        "\r\n#如果允许传送到水面 在传送到水面时是否给予玩家水下呼吸效果(防止区块加载卡顿导致玩家淹死) 0表示不给予 10表示给予10秒 60表示给予60秒 以此类推\r\n" +
+                        "tprWaterBreathing: 60\r\n");
                 config = loadConfiguration(file);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -114,6 +140,7 @@ public class Config {
     }
 
     public static void saveConfiguration(YamlConfiguration config, File file) {
+        //noinspection IOStreamConstructor
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
             writer.write(config.saveToString());
         } catch (IOException e) {
@@ -184,8 +211,8 @@ public class Config {
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static void setLocation(YamlConfiguration config, String path, Location loc) {
+        //noinspection DataFlowIssue
         config.set(path + ".world", loc.getWorld().getName());
         config.set(path + ".x", loc.getX());
         config.set(path + ".y", loc.getY());
@@ -203,8 +230,8 @@ public class Config {
         config.set(path + ".pitch", pitch);
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static Location getLocation(YamlConfiguration config, String path) {
+        //noinspection DataFlowIssue
         return new Location(plugin.getServer().getWorld(config.getString(path + ".world", "world")),
                 config.getDouble(path + ".x"),
                 config.getDouble(path + ".y"),

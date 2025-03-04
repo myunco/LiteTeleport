@@ -26,7 +26,7 @@ public class UpdateNotification implements Listener {
             }
             if (!notifiedPlayers.contains(event.getPlayer().getUniqueId())) {
                 notifiedPlayers.add(event.getPlayer().getUniqueId());
-                LiteTeleport.plugin.getServer().getScheduler().runTaskLaterAsynchronously(LiteTeleport.plugin, () -> {
+                LiteTeleport.plugin.getScheduler().runTaskLaterAsynchronously(() -> {
                     event.getPlayer().sendMessage(Language.messagePrefix + UpdateChecker.newVersion);
                     event.getPlayer().sendMessage(Language.messagePrefix + UpdateChecker.downloadLink);
                 }, 60);

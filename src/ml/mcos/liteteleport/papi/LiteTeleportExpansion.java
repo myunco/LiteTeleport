@@ -1,6 +1,5 @@
 package ml.mcos.liteteleport.papi;
 
-import joptsimple.internal.Strings;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import ml.mcos.liteteleport.LiteTeleport;
 import ml.mcos.liteteleport.config.*;
@@ -46,7 +45,7 @@ public class LiteTeleportExpansion extends PlaceholderExpansion {
         if (homeList == null) {
             return "无";
         }
-        return Strings.join(homeList, ", ");
+        return String.join(", ", homeList);
     }
 
     public static String warpList() {
@@ -54,7 +53,7 @@ public class LiteTeleportExpansion extends PlaceholderExpansion {
         if (keys.isEmpty()) {
             return "无";
         }
-        return Strings.join(keys, ", ");
+        return String.join(", ", keys);
     }
 
     public static String homeAmount(String player) {
