@@ -145,15 +145,16 @@ public class LiteTeleport extends JavaPlugin implements Listener {
                 getLogger().severe("未安装 FoliaCompatibleAPI ，本插件无法运行！");
                 return;
             }
-        } else if (api.getDescription().getVersion().equals("1.1.0")) {
-            getLogger().warning("FoliaCompatibleAPI version is 1.1.0, please update to 1.2.0 or later!");
-            /* // 自动更新
+        } else if (api.getDescription().getVersion().compareTo("1.2.0") < 0) {
+            getLogger().warning("FoliaCompatibleAPI version is " + api.getDescription().getVersion() + ", please update to 1.2.0 or later!");
             try {
                 File file = new File(api.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-                System.out.println("file.getAbsolutePath() = " + file.getAbsolutePath());
                 saveResource(file, getResource("lib/FoliaCompatibleAPI-1.2.0.jar"));
-            } catch (Exception ignored) {
-            } */
+                getLogger().warning("已自动升级FoliaCompatibleAPI至1.2.0，此版本为不兼容更新，请更新所有使用1.2.0以下版本的插件到最新版本并重启服务器！");
+                if (getServer().getPluginManager().getPlugin("ItemCommand") != null || getServer().getPluginManager().getPlugin("ILoreEdit") != null) {
+                    getLogger().warning("已知使用1.2.0以下版本的插件：ItemCommand-1.3.0(1), ILoreEdit-2.7.0");
+                }
+            } catch (Exception ignored) {}
         }
         foliaCompatibleAPI = (FoliaCompatibleAPI) api;
         getServer().getConsoleSender().sendMessage("[LiteTeleport] Found FoliaCompatibleAPI: §3v" + api.getDescription().getVersion());
@@ -570,6 +571,12 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         } else {
             tpList.remove(target);
             player.sendMessage(Language.commandTpacancel);
+            if (mcVersion.isGreaterThan(7, 4)) {
+                Player targetPlayer = getServer().getPlayer(target);
+                if (targetPlayer != null) {
+                    targetPlayer.sendMessage(Language.commandTpacancel);
+                }
+            }
         }
     }
 
@@ -684,7 +691,6 @@ public class LiteTeleport extends JavaPlugin implements Listener {
         if (Config.tpDelay > 0 && !player.hasPermission("LiteTeleport.delay.bypass")) {
             player.sendMessage(Language.replaceArgs(Language.teleportDelay, Config.tpDelay));
             final CompletableFuture<Boolean> future = new CompletableFuture<>();
-
             if (mcVersion.isLessThan(13, 2)) {
                 // 1.13.2之前没有Consumer为参数的runTaskTimer方法 改用Runnable实现
                 final CompatibleTask[] task = new CompatibleTask[1];
@@ -694,7 +700,6 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
                     @Override
                     public void run() {
-                        System.out.println("【测试】 i = " + i);
                         i--;
                         if (!locationEqual(pos, player.getLocation())) {
                             player.sendMessage(Language.teleportCancel);
@@ -718,7 +723,6 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
                     @Override
                     public void accept(CompatibleTask task) {
-                        System.out.println("【测试】 i = " + i);
                         i--;
                         if (!locationEqual(pos, player.getLocation())) {
                             player.sendMessage(Language.teleportCancel);
@@ -741,23 +745,19 @@ public class LiteTeleport extends JavaPlugin implements Listener {
             }
         }
         Location loc;
+        if (mcVersion.isGreaterThan(10)) {
+            player.sendTitle(Language.commandTprTitle, Language.commandTprSubtitle, 20, 160, 20);
+        }
         if (player.getWorld().getEnvironment() == World.Environment.NETHER) {
-            if (mcVersion.isGreaterThan(10)) {
-                player.sendTitle(Language.commandTprTitle, Language.commandTprSubtitle, 20, 160, 20);
-            }
             loc = RandomTeleport.getRandomLocByNether(player, getScheduler());
         } else {
-            if (mcVersion.isGreaterThan(10)) {
-                if (player.getWorld().getEnvironment() == World.Environment.THE_END) {
-                    player.sendMessage(Language.commandTprTheEnd);
-                } else {
-                    player.sendTitle(Language.commandTprTitle, Language.commandTprSubtitle, 20, 160, 20);
-                }
+            if (player.getWorld().getEnvironment() == World.Environment.THE_END) {
+                player.sendMessage(Language.commandTprTheEnd);
             }
             loc = RandomTeleport.getRandomLoc(player, getScheduler());
         }
         if (mcVersion.isGreaterThan(10)) {
-            player.sendTitle("", "", 0, 0, 0);
+            player.resetTitle();
         }
         if (loc == null) {
             player.sendMessage(Language.commandTprNotFoundSafeLocation);

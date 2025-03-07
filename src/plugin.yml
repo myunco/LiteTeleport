@@ -1,6 +1,6 @@
 name: LiteTeleport
 main: ml.mcos.liteteleport.LiteTeleport
-version: 1.10.2
+version: 1.11.0
 api-version: 1.13
 author: myunco
 website: https://github.com/myunco/LiteTeleport
@@ -10,6 +10,8 @@ softdepend:
   - Vault
   - PlayerPoints
   - PlaceholderAPI
+  - FoliaCompatibleAPI
+folia-supported: true
 commands:
   LiteTeleport:
     description: 'This is main command of the plugin.'
@@ -148,6 +150,8 @@ permissions:
   LiteTeleport.warp:
     description: '允许使用/warp'
     default: true
+    children:
+      LiteTeleport.warp.list: true
   LiteTeleport.free:
     description: '使用除/tpr和/sethome之外的传送命令免费'
     default: 'op'

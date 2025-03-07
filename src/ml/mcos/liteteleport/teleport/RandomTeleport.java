@@ -1,6 +1,5 @@
 package ml.mcos.liteteleport.teleport;
 
-import com.mojang.datafixers.kinds.IdF;
 import ml.mcos.liteteleport.LiteTeleport;
 import ml.mcos.liteteleport.config.Config;
 import ml.mcos.liteteleport.util.Version;
@@ -33,11 +32,9 @@ public class RandomTeleport {
 
     private static boolean isUnsafeLoc(Block block) {
         Material type = block.getType();
-        // System.out.println("type = " + type); //TODO remove
-        // System.out.println("x = " + block.getX() + ", y = " + block.getY() + ", z = " + block.getZ()); //TODO remove
-
         if (type == Material.AIR) {
-            // System.out.println("不安全原因：方块是空气"); //TODO remove
+            return true;
+        } else if (mcVersion.isGreaterThanOrEqualTo(13) && (type == Material.CAVE_AIR || type == Material.VOID_AIR)) {
             return true;
         }
         // 如果方块是水
@@ -60,7 +57,6 @@ public class RandomTeleport {
             } else {
                 //如果方块是岩浆、仙人掌、岩浆块或任何可以自由通过的方块，视为非安全
                 if (type == Material.LAVA || type == Material.CACTUS || type == Material.MAGMA_BLOCK || block.isPassable()) {
-                    // System.out.println("不安全原因：岩浆、水、仙人掌、岩浆块或方块可以自由通过"); //TODO remove
                     return true;
                 }
             }
@@ -71,16 +67,13 @@ public class RandomTeleport {
         Material typeR2 = blockR2.getType();
         if (mcVersion.isLessThan(13)) {
             if (!blockR1.isEmpty() || !blockR2.isEmpty()) { //如果上面两个方块不是空气 视为非安全
-                // System.out.println("不安全原因：上面两个方块不是空气"); //TODO remove
                 return true;
             }
         } else {
             if (!blockR1.isPassable() || !blockR2.isPassable()) { //如果上面两个方块不能自由通过 视为非安全
-                // System.out.println("不安全原因：上面两个方块不能自由通过"); //TODO remove
                 return true;
             }
             if (typeR1 == Material.LAVA || typeR1 == Material.WATER || typeR2 == Material.LAVA || typeR2 == Material.WATER) { //如果上面两个方块是岩浆或水 视为非安全
-                // System.out.println("不安全原因：上面两个方块是岩浆或水"); //TODO remove
                 return true;
             }
         }
@@ -101,58 +94,58 @@ public class RandomTeleport {
             }
             final CompletableFuture<Boolean> future = new CompletableFuture<>();
             scheduler.runTask(() -> {
-                System.out.println("randomLoc.x = " + randomLoc.getX() + ", z = " + randomLoc.getZ()); //TODO remove
                 randomLoc.setY(player.getWorld().getHighestBlockYAt(randomLoc));
                 if (mcVersion.isLessThan(15)) {
                     randomLoc.setY(randomLoc.getY() - 1);
                 }
-                if (isUnsafeLoc(randomLoc.getBlock())) {
+                if (randomLoc.getY() < 0 || isUnsafeLoc(randomLoc.getBlock())) {
                     // 如果这个位置不安全 先尝试遍历整个区块内的位置
-                    System.out.println("尝试在同一区块内找到安全位置"); //TODO remove
+                    final int firstX = (int) randomLoc.getX();
+                    final int firstZ = (int) randomLoc.getZ();
                     int cx = randomLoc.getChunk().getX() * 16;
                     int cz = randomLoc.getChunk().getZ() * 16;
                     for (int x = cx; x < cx + 16; x++) {
                         for (int z = cz; z < cz + 16; z++) {
+                            if (x == firstX && z == firstZ) {
+                                continue;
+                            }
                             randomLoc.setX(x);
                             randomLoc.setZ(z);
                             randomLoc.setY(player.getWorld().getHighestBlockYAt(x, z));
                             if (mcVersion.isLessThan(15)) {
                                 randomLoc.setY(randomLoc.getY() - 1);
                             }
-                            if (isUnsafeLoc(randomLoc.getBlock())) {
+                            if (randomLoc.getY() < 0 || isUnsafeLoc(randomLoc.getBlock())) {
                                 continue;
                             }
-                            System.out.println("在同一区块内找到安全位置"); //TODO remove
+                            if (Config.tprAllowWater && Config.tprWaterBreathing > 0 && blockIsWater(randomLoc.getBlock().getType())) {
+                                player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, Config.tprWaterBreathing * 20, 0), true);
+                            }
                             future.complete(true); //找到安全位置
                             return;
                         }
                     }
-                    System.out.println("同一区块内未找到安全位置 再次随机"); //TODO remove
                     //如果随机位置不安全 重置X、Z坐标
                     randomLoc.setX(centerLoc.getX());
                     randomLoc.setZ(centerLoc.getZ());
                     future.complete(false); //未找到安全位置
                     return;
                 }
-                System.out.println("randomLoc.getBlock().toString() = " + randomLoc.getBlock()); //TODO remove
-                if (blockIsWater(randomLoc.getBlock().getType())) {
+                if (Config.tprAllowWater && Config.tprWaterBreathing > 0 && blockIsWater(randomLoc.getBlock().getType())) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, Config.tprWaterBreathing * 20, 0), true);
                 }
-                System.out.println("一次就找到安全位置"); //TODO remove
                 future.complete(true); //找到安全位置
             }, randomLoc);
-            boolean result = future.join();
-            if (!result) {
-                continue;
+            boolean result = future.join(); //等待异步任务完成
+            if (result) { //找到安全位置 跳出循环
+                flag = false;
+                break;
             }
-            flag = false;
-            break;
         }
-        if (flag) {
+        if (flag) { //循环结束 未找到安全位置
             return null;
         }
         randomLoc.add(0.5, 1.0, 0.5);
-        System.out.println("randomLoc = " + randomLoc); //TODO remove
         return randomLoc;
     }
 
@@ -182,16 +175,19 @@ public class RandomTeleport {
                     if (isUnsafeLoc(randomLoc.getBlock())) {
                         continue;
                     }
-                    System.out.println("一次就找到安全位置"); //TODO remove
                     future.complete(true); //找到安全位置
                     return;
                 }
                 // 如果这个位置不安全 先尝试遍历整个区块内的位置
-                System.out.println("尝试在同一区块内找到安全位置"); //TODO remove
+                final int firstX = (int) randomLoc.getX();
+                final int firstZ = (int) randomLoc.getZ();
                 int cx = randomLoc.getChunk().getX() * 16;
                 int cz = randomLoc.getChunk().getZ() * 16;
                 for (int x = cx; x < cx + 16; x++) {
                     for (int z = cz; z < cz + 16; z++) {
+                        if (x == firstX && z == firstZ) {
+                            continue;
+                        }
                         randomLoc.setX(x);
                         randomLoc.setZ(z);
                         for (int y = 122; y > 30; y--) {
@@ -199,13 +195,11 @@ public class RandomTeleport {
                             if (isUnsafeLoc(randomLoc.getBlock())) {
                                 continue;
                             }
-                            System.out.println("在同一区块内找到安全位置"); //TODO remove
                             future.complete(true); //找到安全位置
                             return;
                         }
                     }
                 }
-                System.out.println("同一区块内未找到安全位置 再次随机"); //TODO remove
                 future.complete(false); //未找到安全位置
             }, randomLoc);
             boolean result = future.join();

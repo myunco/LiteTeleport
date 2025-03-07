@@ -127,7 +127,7 @@ public class Config {
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
                 writer.write("\r\n#随机传送模式 true=矩形范围内随机传送 false=圆形范围内随机传送\r\n" +
                         "tprMode: true\r\n" +
-                        "\r\n#允许随机传送到水面 true表示允许 false表示不允许 (如果世界中海洋非常多建议设置为true 否则可能导致多次加载随机区块寻找没水的位置影响性能)\r\n" +
+                        "\r\n#允许随机传送到水面 true表示允许 false表示不允许 (如果世界中海洋非常多建议设置为true 否则可能导致多次加载随机区块寻找位置影响性能)\r\n" +
                         "tprAllowWater: false\r\n" +
                         "\r\n#如果允许传送到水面 在传送到水面时是否给予玩家水下呼吸效果(防止区块加载卡顿导致玩家淹死) 0表示不给予 10表示给予10秒 60表示给予60秒 以此类推\r\n" +
                         "tprWaterBreathing: 60\r\n");
