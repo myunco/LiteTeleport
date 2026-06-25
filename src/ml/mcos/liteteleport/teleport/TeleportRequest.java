@@ -52,7 +52,7 @@ public class TeleportRequest {
 
     private static Method getOnlinePlayers;
     private static Collection<? extends Player> getOnlinePlayers() {
-        if (mcVersion.isGreaterThanOrEqualTo(7, 10)) {
+        if (mcVersion.isGreaterOrEqual(7, 10)) {
             return server.getOnlinePlayers();
         }
         // 1.7.10之前返回值是数组

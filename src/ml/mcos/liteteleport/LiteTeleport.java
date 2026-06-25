@@ -514,7 +514,7 @@ public class LiteTeleport extends JavaPlugin implements Listener {
 
     private void commandSetspawn(Player player) {
         Location loc = player.getLocation();
-        if (mcVersion.isGreaterThanOrEqualTo(12, 2)) {
+        if (mcVersion.isGreaterOrEqual(12, 2)) {
             player.getWorld().setSpawnLocation(loc);
         } else {
             player.getWorld().setSpawnLocation(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());

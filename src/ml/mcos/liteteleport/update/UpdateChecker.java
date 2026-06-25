@@ -12,6 +12,7 @@ public class UpdateChecker {
     static boolean isUpdateAvailable;
     static String newVersion;
     static String downloadLink;
+    static String url = "https://r2.699101.xyz/C8A05E18/LiteTeleport.txt";
 
     public static void start() {
         plugin.getScheduler().runTaskAsynchronously(() -> {
@@ -19,7 +20,7 @@ public class UpdateChecker {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    CheckResult result = new CheckResult("https://myunco.sinacloud.net/C8A05E18/LiteTeleport.txt", plugin.getDescription().getVersion());
+                    CheckResult result = new CheckResult(url, plugin.getDescription().getVersion());
                     if (result.getResultType() == CheckResult.ResultType.SUCCESS) {
                         if (result.hasNewVersion()) {
                             isUpdateAvailable = true;
@@ -34,6 +35,7 @@ public class UpdateChecker {
                         }
                     } else {
                         plugin.sendMessage(Language.updateCheckFailure + result.getErrorMessage());
+                        url = "https://pub-860afec4fd3b4eaa9ed6e814d32c1379.r2.dev/C8A05E18/LiteTeleport.txt";
                     }
                 }
             }, 7000, 12 * 60 * 60 * 1000);

@@ -34,7 +34,7 @@ public class RandomTeleport {
         Material type = block.getType();
         if (type == Material.AIR) {
             return true;
-        } else if (mcVersion.isGreaterThanOrEqualTo(13) && (type == Material.CAVE_AIR || type == Material.VOID_AIR)) {
+        } else if (mcVersion.isGreaterOrEqual(13) && (type == Material.CAVE_AIR || type == Material.VOID_AIR)) {
             return true;
         }
         // 如果方块是水
