@@ -20,7 +20,7 @@ public class RandomTeleport {
     private static Material STATIONARY_LAVA;
     private static Material MAGMA;
 
-    static {
+     static {
         if (mcVersion.isLessThan(13)) {
             STATIONARY_WATER = Material.valueOf("STATIONARY_WATER");
             STATIONARY_LAVA = Material.valueOf("STATIONARY_LAVA");
@@ -244,9 +244,8 @@ public class RandomTeleport {
 
     private static void randomCircular(Location center, int min, int max) {
         Random random = new Random();
-        int minSq = min * min;
-        int maxSq = max * max;
-        // double radius = min + (max - min) * random.nextDouble();
+        long minSq = (long) min * min;
+        long maxSq = (long) max * max;
         double radius = Math.sqrt(random.nextDouble() * (maxSq - minSq) + minSq);
         double angle = random.nextDouble() * 2 * Math.PI;
         int rx = (int) Math.round(radius * Math.cos(angle));
